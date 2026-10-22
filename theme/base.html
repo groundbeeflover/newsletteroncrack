@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="$description">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>$page_title</title>
+<link rel="stylesheet" href="${root}style.css">
+<link rel="alternate" type="application/atom+xml" title="$site_title" href="${root}feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead">
+  <a class="brand" href="${root}index.html">$site_title</a>
+  <nav aria-label="Site">
+    <a href="${root}track.html">Learning track</a>
+    <a href="${root}feed.xml">Feed</a>
+  </nav>
+</header>
+<main id="main">
+$body
+</main>
+<footer class="colophon">
+  <p>Written each morning by a Claude Code routine from linked public sources. Check anything important against the original.</p>
+</footer>
+</body>
+</html>
