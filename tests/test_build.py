@@ -310,8 +310,18 @@ def test_unknown_folder_and_file_fail(site_root):
 
 
 def test_unchecked_lab_blocks_publishing(site_root):
+    write(site_root, "me/progress.yaml", "progress:\n  - {unit: first, lab_done: 2026-11-07}\n")
     publish(site_root, "second")
     assert "lab 'lab-two', which hasn't been checked" in build_fails(site_root)
+
+
+def test_units_wait_for_the_previous_lab(site_root):
+    write(site_root, "course/labs.yaml", LABS.replace("checked: null", "checked: 2026-11-01"))
+    publish(site_root, "first")
+    publish(site_root, "second")
+    assert "isn't done yet" in build_fails(site_root)
+    write(site_root, "me/progress.yaml", "progress:\n  - {unit: first, lab_done: 2026-11-07}\n")
+    build_ok(site_root)
 
 
 def test_sessions_may_only_cite_checked_cases(site_root):

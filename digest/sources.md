@@ -1,6 +1,6 @@
 # Sources
 
-The routine pulls these feeds first, then uses web search to fill gaps. Feed URLs marked "verify" are best guesses; the routine checks them and corrects this file when it finds the right one.
+The routine reads these feeds for the weekly news page, then uses web search to fill gaps. Feed URLs marked "verify" are best guesses; the routine checks them and corrects this file when it finds the right one.
 
 ## News
 

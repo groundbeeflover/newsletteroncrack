@@ -1,11 +1,17 @@
-# Fallback for when the routine pushes to a claude/ branch instead of main.
-# Fast-forwards main (so commit authors stay yours), deletes the branch,
-# and starts a deploy. Pushes made with GITHUB_TOKEN don't trigger other
+# Publishes the weekly routine's work. The routine pushes to a claude/brief-*
+# branch; once the Check workflow passes there, this fast-forwards main to it
+# (so commits stay authored by you), deletes the branch, and starts a deploy.
+#
+# It runs on workflow_run, so GitHub always uses the copy of this file on main,
+# never one from the routine's branch. That keeps the path check below out of
+# the routine's reach. Pushes made with GITHUB_TOKEN don't trigger other
 # workflows, which is why the deploy is started explicitly.
-name: Fast-forward main from claude/ branches
+name: Publish the routine's branch
 
 on:
-  push:
+  workflow_run:
+    workflows: [Check]
+    types: [completed]
     branches: ["claude/brief-*"]
 
 permissions:
@@ -14,6 +20,7 @@ permissions:
 
 jobs:
   fast-forward:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,12 +30,22 @@ jobs:
 
       - name: Fast-forward main
         env:
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           git fetch origin "$BRANCH"
-          bad=$(git diff --name-only main "origin/$BRANCH" | grep -vE '^(posts|digest)/' || true)
-          if [ -n "$bad" ]; then echo "Refusing to publish changes outside posts/ and digest/: $bad"; exit 1; fi
-          git merge --ff-only "origin/$BRANCH"
+          if [ "$(git rev-parse "origin/$BRANCH")" != "$SHA" ]; then
+            echo "The branch moved after this check ran; the newer check will publish it."
+            exit 0
+          fi
+          # The routine may only change its own folders.
+          bad=$(git diff --name-only main "$SHA" | grep -vE '^(units|news|digest)/' || true)
+          if [ -n "$bad" ]; then
+            echo "Refusing to publish changes outside units/, news/ and digest/:"
+            echo "$bad"
+            exit 1
+          fi
+          git merge --ff-only "$SHA"
           git push origin main
           git push origin --delete "$BRANCH"
 

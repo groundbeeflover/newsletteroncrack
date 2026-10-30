@@ -214,6 +214,7 @@ class Site:
         self.allow = self.load_allowlist()
         self.progress = self.load_progress()
         self.content = self.load_unit_content()
+        self.check_pacing()
         self.news = self.load_news()
         if self.problems:
             raise BuildError(self.problems)
@@ -465,6 +466,17 @@ class Site:
                 "published": ordered[0]["date"] if ordered else None,
             }
         return content
+
+    def check_pacing(self) -> None:
+        """Units are published one at a time: nothing past the first unlogged lab."""
+        current = next((u for u in self.units if not (self.progress.get(u["slug"]) or {}).get("lab_done")), None)
+        if not current:
+            return
+        for unit in self.units[current["number"]:]:
+            if unit["slug"] in self.content:
+                self.problem(self.root / "units" / unit["slug"],
+                             f"is published, but unit {current['number']} ({current['slug']}) isn't done yet; "
+                             "a unit is published only after the previous unit's lab is logged in me/progress.yaml")
 
     def unit_part(self, path: Path, meta: dict, body: str) -> dict:
         rendered = render_markdown(body, id_prefix=f"{path.stem}-", base_level=2)

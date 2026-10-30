@@ -8,8 +8,8 @@
 #   slug        permanent ID, lowercase-with-dashes; also the unit's folder under units/
 #   module      groups units on the course map
 #   title       shown on the site
-#   covers      what the two lessons must cover (every item from the old
-#               digest/curriculum.md lands in exactly one unit)
+#   covers      the topics the week's sessions must cover (together, the units
+#               cover every topic from the original daily curriculum)
 #   objectives  what you should be able to do afterwards; the weekly quiz and
 #               the debrief of your lab notes test exactly these
 #   builds_on   earlier units the lessons should connect back to
