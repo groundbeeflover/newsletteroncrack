@@ -41,7 +41,7 @@ labs:
         url: https://www.kali.org/get-kali/
       - title: "Metasploitable 2 (Rapid7 docs, including network warnings)"
         url: https://docs.rapid7.com/metasploit/metasploitable-2/
-    checked: yes
+    checked: true
 
   - id: threat-model-own-project
     name: "Threat model one of your own projects"
