@@ -289,6 +289,12 @@ def test_progress_is_validated(site_root):
     assert "'missing' is not in course/units.yaml" in problems
 
 
+@pytest.mark.parametrize("value", ["yes", "true", "done"])
+def test_checked_must_be_a_date(site_root, value):
+    write(site_root, "course/labs.yaml", LABS.replace("checked: 2026-11-01", f"checked: {value}"))
+    assert "must be the date you checked it" in build_fails(site_root)
+
+
 def test_course_references_are_validated(site_root):
     write(site_root, "course/units.yaml", UNITS.replace("lab: lab-one", "lab: nope").replace("[first]", "[third]"))
     problems = build_fails(site_root)

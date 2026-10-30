@@ -302,7 +302,8 @@ class Site:
                 self.problem(path, f"id '{ident}' is used twice")
                 continue
             if item.get("checked") is not None and as_date(item["checked"]) is None:
-                self.problem(path, f"entry '{ident}': checked must be a date (YYYY-MM-DD) or null")
+                self.problem(path, f"entry '{ident}': checked is {item['checked']!r}, but it must be the "
+                                   f"date you checked it, like 'checked: {dt.date.today().isoformat()}', or null")
             entries[ident] = item
         return entries
 
