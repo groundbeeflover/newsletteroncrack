@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 from string import Template
 from urllib.parse import urlsplit
+from zoneinfo import ZoneInfo
 
 import markdown
 import nh3
@@ -32,6 +33,7 @@ ROOT = Path(__file__).resolve().parent
 
 SITE_TITLE = os.environ.get("SITE_TITLE", "Security course")
 SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")  # set by the deploy workflow
+SITE_TIMEZONE = os.environ.get("SITE_TIMEZONE", "Europe/Amsterdam")  # decides what "today" is
 
 # Markdown in units/ and news/ is written by an agent that reads untrusted web
 # content, so the rendered HTML is sanitized: no scripts, no event handlers, no
@@ -53,16 +55,12 @@ ALLOWED_ATTRS = {
     "ol": {"start"},
 }
 
-# Files a unit folder may hold, in page order. The routine publishes a unit with
-# the first three; the review and the debrief of your lab notes come later.
-UNIT_PARTS = {
-    "lesson-1.md": "Lesson 1",
-    "lesson-2.md": "Lesson 2",
-    "lab.md": "Lab guide",
-    "review.md": "Review",
-    "debrief.md": "Debrief",
-}
-REQUIRED_PARTS = ("lesson-1.md", "lesson-2.md", "lab.md")
+# A unit is a week of short daily sessions: day-1.md, day-2.md and so on, up to
+# day-7.md, each a lesson, a lab session or a review. The routine writes the whole
+# week when the unit starts; the debrief of your lab notes comes the week after.
+DAY_FILE = re.compile(r"day-([1-7])\.md")
+DAY_KINDS = {"lesson": "Lesson", "lab": "Lab", "review": "Review"}
+DEBRIEF = "debrief.md"
 
 NEWS_NAME = re.compile(r"\d{4}-W\d{2}")
 ATTACK_ID = re.compile(r"T\d{4}(\.\d{3})?")
@@ -107,6 +105,14 @@ def esc(value) -> str:
 
 def nice_date(day: dt.date) -> str:
     return f"{day.day} {day.strftime('%B %Y')}"
+
+
+def short_date(day: dt.date) -> str:
+    return f"{day.strftime('%a')} {day.day} {day.strftime('%b')}"
+
+
+def local_today() -> dt.date:
+    return dt.datetime.now(ZoneInfo(SITE_TIMEZONE)).date()
 
 
 def as_date(value):
@@ -198,8 +204,9 @@ def render_markdown(text: str, *, id_prefix: str = "", base_level: int = 1) -> s
 class Site:
     """Everything the pages are built from, loaded and checked."""
 
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, today: dt.date | None = None):
         self.root = root
+        self.today = today or local_today()
         self.problems: list[str] = []
         self.load_course()
         if self.problems:  # everything after this relies on a consistent course
@@ -414,36 +421,61 @@ class Site:
             if not unit:
                 self.problem(folder, "folder name is not a unit slug from course/units.yaml")
                 continue
-            parts, present = {}, set()
+            days, numbers, debrief = {}, set(), None
             for path in sorted(folder.iterdir()):
-                if path.name not in UNIT_PARTS:
-                    self.problem(path, f"unexpected file; a unit folder holds only {', '.join(UNIT_PARTS)}")
+                match = DAY_FILE.fullmatch(path.name)
+                if not match and path.name != DEBRIEF:
+                    self.problem(path, "unexpected file; a unit folder holds day-1.md to day-7.md and debrief.md")
                     continue
-                present.add(path.name)
+                if match:
+                    numbers.add(int(match.group(1)))
                 parsed = self.read_markdown(path)
                 if not parsed:
                     continue
                 meta, body = parsed
-                rendered = render_markdown(body, id_prefix=f"{path.stem}-", base_level=2)
-                self.check_links(path, rendered)
-                cases = meta.get("cases") or []
-                for case in cases:
-                    if case not in self.cases:
-                        self.problem(path, f"cases: '{case}' is not in course/cases.yaml")
-                    elif not self.cases[case].get("checked"):
-                        self.problem(path, f"cases: '{case}' hasn't been checked in course/cases.yaml yet")
-                parts[path.name] = {"title": str(meta["title"]), "date": meta["date"],
-                                    "cases": cases, "html": rendered}
-            missing = [name for name in REQUIRED_PARTS if name not in present]
-            if missing:
-                self.problem(folder, f"is missing {', '.join(missing)}")
+                part = self.unit_part(path, meta, body)
+                if not match:
+                    debrief = part
+                    continue
+                kind, minutes = meta.get("kind"), meta.get("minutes")
+                if kind not in DAY_KINDS:
+                    self.problem(path, f"front matter needs 'kind', one of {', '.join(DAY_KINDS)}")
+                if minutes is not None and (isinstance(minutes, bool) or not isinstance(minutes, int) or minutes < 1):
+                    self.problem(path, "minutes must be a whole number")
+                    minutes = None
+                days[int(match.group(1))] = dict(part, number=int(match.group(1)), kind=kind, minutes=minutes)
+            if not numbers:
+                self.problem(folder, "has no day files; a unit starts with day-1.md")
+            elif sorted(numbers) != list(range(1, max(numbers) + 1)):
+                found = ", ".join(f"day-{n}.md" for n in sorted(numbers))
+                self.problem(folder, f"days must run from day-1.md without gaps (found {found})")
+            ordered = [days[n] for n in sorted(days)]
+            if ordered and not any(day["kind"] == "lab" for day in ordered):
+                self.problem(folder, "needs at least one day with kind: lab")
+            for earlier, later in zip(ordered, ordered[1:]):
+                if later["date"] <= earlier["date"]:
+                    self.problem(folder / f"day-{later['number']}.md",
+                                 f"date must come after day {earlier['number']}'s ({earlier['date']})")
             lab = self.labs[unit["lab"]]
             if not lab.get("checked"):
                 self.problem(folder, f"uses lab '{lab['id']}', which hasn't been checked in course/labs.yaml yet")
-            dates = [part["date"] for part in parts.values()]
-            published = parts["lesson-1.md"]["date"] if "lesson-1.md" in parts else min(dates, default=None)
-            content[unit["slug"]] = {"parts": parts, "published": published}
+            content[unit["slug"]] = {
+                "days": ordered,
+                "debrief": debrief,
+                "published": ordered[0]["date"] if ordered else None,
+            }
         return content
+
+    def unit_part(self, path: Path, meta: dict, body: str) -> dict:
+        rendered = render_markdown(body, id_prefix=f"{path.stem}-", base_level=2)
+        self.check_links(path, rendered)
+        cases = meta.get("cases") or []
+        for case in cases:
+            if case not in self.cases:
+                self.problem(path, f"cases: '{case}' is not in course/cases.yaml")
+            elif not self.cases[case].get("checked"):
+                self.problem(path, f"cases: '{case}' hasn't been checked in course/cases.yaml yet")
+        return {"title": str(meta["title"]), "date": meta["date"], "cases": cases, "html": rendered}
 
     def load_news(self) -> list[dict]:
         issues = []
@@ -559,33 +591,71 @@ def unchecked_flag(entry: dict) -> str:
     return "" if entry.get("checked") else ' <span class="unchecked">not yet checked</span>'
 
 
+def when(site: Site, day: dict) -> str:
+    if day["date"] == site.today:
+        return "today"
+    return "past" if day["date"] < site.today else "upcoming"
+
+
+def day_meta(day: dict) -> str:
+    bits = [DAY_KINDS.get(day["kind"], "Session")] + ([f"{day['minutes']} min"] if day["minutes"] else [])
+    return " · ".join(bits)
+
+
+def schedule_markup(site: Site, slug: str, link: str) -> str:
+    """The week's days, oldest first, with today marked."""
+    rows = []
+    for day in site.content[slug]["days"]:
+        state = when(site, day)
+        flag = ' <span class="today-flag">Today</span>' if state == "today" else ""
+        rows.append(
+            f'<li class="{state}"><span class="when">{short_date(day["date"])}</span>'
+            f'<span><a href="{link}#day-{day["number"]}">Day {day["number"]}: {esc(day["title"])}</a>{flag}'
+            f'<span class="meta"> · {day_meta(day)}</span></span></li>'
+        )
+    return f'<ol class="schedule">{"".join(rows)}</ol>'
+
+
 def build_home(site: Site, template: Template) -> str:
     parts = []
     unit = current_unit(site)
     if unit:
         slug, link = unit["slug"], f'units/{esc(unit["slug"])}.html'
         lab = site.labs[unit["lab"]]
-        dateline = (f'<p class="dateline">Unit {unit["number"]} of {len(site.units)} · '
-                    f'{esc(unit["module"])}</p>')
-        title = f'<h1><a href="{link}">{esc(unit["title"])}</a></h1>'
-        if slug in site.content:
-            steps = "".join(
-                f'<li><a href="{link}#{name[:-3]}">{label}</a>: {esc(part["title"])}</li>'
-                for name, label in UNIT_PARTS.items()
-                if (part := site.content[slug]["parts"].get(name))
-            )
-            body = (f'<ol class="steps">{steps}</ol>'
-                    f'<p class="meta">Lab: {lab_line(lab)}</p>'
+        unit_ref = f'Unit {unit["number"]} of {len(site.units)} · {esc(unit["module"])}'
+        lab_note = (f'<p class="meta">Lab: {lab_line(lab)}</p>'
                     "<p>When you finish the lab, log it in <code>me/progress.yaml</code>. "
-                    "The next unit is published once it's there.</p>")
+                    "The next unit starts once it's there.</p>")
+        days = site.content.get(slug, {}).get("days")
+        if days:
+            today = next((day for day in days if day["date"] == site.today), None)
+            if today:
+                head = (f'<p class="dateline">Today, {short_date(site.today)} · {unit_ref}</p>'
+                        f'<h1><a href="{link}#day-{today["number"]}">Day {today["number"]}: {esc(today["title"])}</a></h1>'
+                        f'<p class="meta">{day_meta(today)} · from <a href="{link}">{esc(unit["title"])}</a></p>'
+                        f'<p><a class="read" href="{link}#day-{today["number"]}">Start today\'s session</a></p>')
+            else:
+                coming = next((day for day in days if day["date"] > site.today), None)
+                if site.today < days[0]["date"]:
+                    status = f"This unit starts on {short_date(days[0]['date'])}."
+                elif coming:
+                    status = (f"No session today. Next up is day {coming['number']}, "
+                              f"on {short_date(coming['date'])}.")
+                else:
+                    status = ("This unit's week is over, but its lab isn't logged yet. Finish the lab "
+                              "and log it; the next unit starts after that.")
+                head = (f'<p class="dateline">{unit_ref}</p>'
+                        f'<h1><a href="{link}">{esc(unit["title"])}</a></h1><p class="summary">{status}</p>')
+            body = f'{head}<h2 class="small">This week</h2>{schedule_markup(site, slug, link)}{lab_note}'
         else:
-            body = ("<p class=\"summary\">This unit is up next. Its lessons appear after the "
-                    "routine's next run; until then you can read the objectives and get the lab ready.</p>"
-                    f'<p class="meta">Lab: {lab_line(lab)}</p>')
-        objectives = "".join(f"<li>{esc(o)}</li>" for o in unit["objectives"])
-        parts.append(f'<article class="latest">{dateline}{title}{body}'
-                     f'<h2 class="small">By the end you can</h2><ul class="objectives">{objectives}</ul>'
-                     f'<p><a class="read" href="{link}">Open the unit</a></p></article>')
+            objectives = "".join(f"<li>{esc(o)}</li>" for o in unit["objectives"])
+            body = (f'<p class="dateline">{unit_ref}</p><h1><a href="{link}">{esc(unit["title"])}</a></h1>'
+                    '<p class="summary">This is your current unit, but its daily sessions haven\'t been '
+                    "written yet. They appear after the routine's next run. Until then you can read the "
+                    "objectives and get the lab ready.</p>"
+                    f'<h2 class="small">By the end you can</h2><ul class="objectives">{objectives}</ul>'
+                    f'{lab_note}<p><a class="read" href="{link}">Open the unit</a></p>')
+        parts.append(f'<article class="latest">{body}</article>')
     else:
         parts.append('<article class="latest"><h1>Course complete</h1>'
                      '<p class="summary">You have logged the lab for every unit.</p></article>')
@@ -598,7 +668,7 @@ def build_home(site: Site, template: Template) -> str:
         )
         parts.append(f'<section class="archive"><h2><a href="news.html">News</a></h2><ol>{rows}</ol></section>')
     return page(template, title=SITE_TITLE, body="".join(parts), root="",
-                description="A self-paced security course: one unit a week, built around real incidents and a weekly lab.")
+                description="A self-paced security course: short daily sessions built around real incidents, with a weekly lab.")
 
 
 def build_course(site: Site, template: Template) -> str:
@@ -622,9 +692,9 @@ def build_course(site: Site, template: Template) -> str:
         )
     close()
     body = ('<article class="course-page"><h1>Course map</h1>'
-            '<p class="summary">One unit a week, in this order. Each unit has two lessons built '
-            "around a real incident, a lab, and a review. A unit counts as done once you log its lab "
-            "in <code>me/progress.yaml</code>.</p>"
+            '<p class="summary">One unit a week, in this order. Each unit is a week of short daily '
+            "sessions built around a real incident, with a lab and a review. A unit counts as done once "
+            "you log its lab in <code>me/progress.yaml</code>.</p>"
             f'{track_markup(site, "", compact=False)}{"".join(sections)}</article>')
     return page(template, title="Course map", body=body, root="")
 
@@ -670,12 +740,14 @@ def progress_markup(site: Site, slug: str) -> str:
 
 def build_unit(site: Site, unit: dict, template: Template) -> str:
     slug, root = unit["slug"], "../"
-    parts = site.content.get(slug, {}).get("parts", {})
+    content = site.content.get(slug, {})
+    days = content.get("days", [])
     sections, contents = [], []
 
     def add(ident: str, label: str, heading: str, inner: str) -> None:
         sections.append(f'<section id="{ident}" class="part"><h2>{heading}</h2>{inner}</section>')
-        contents.append(f'<a href="#{ident}">{label}</a>')
+        if label:
+            contents.append(f'<a href="#{ident}">{label}</a>')
 
     covers = "".join(f"<li>{esc(c)}</li>" for c in unit.get("covers") or [])
     attack = ", ".join(attack_link(t) for t in unit.get("attack") or [])
@@ -684,32 +756,39 @@ def build_unit(site: Site, unit: dict, template: Template) -> str:
         + (f"<details><summary>Topics covered</summary><ul>{covers}</ul></details>" if covers else "")
         + (f'<p class="meta">MITRE ATT&amp;CK: {attack}</p>' if attack else ""))
 
-    case_ids = list(dict.fromkeys((unit.get("cases") or []) + [c for p in parts.values() for c in p["cases"]]))
+    written = days + ([content["debrief"]] if content.get("debrief") else [])
+    case_ids = list(dict.fromkeys((unit.get("cases") or []) + [c for part in written for c in part["cases"]]))
     if case_ids:
         add("cases", "Incidents", "Real incidents", "".join(case_card(site.cases[c], root) for c in case_ids))
 
-    def add_part(name: str) -> None:
-        part = parts[name]
-        add(name[:-3], UNIT_PARTS[name], f"{UNIT_PARTS[name]}: {esc(part['title'])}",
-            f'<p class="dateline"><time datetime="{part["date"].isoformat()}">{nice_date(part["date"])}</time></p>'
-            f'<div class="prose">{part["html"]}</div>')
-
-    for name in ("lesson-1.md", "lesson-2.md"):
-        if name in parts:
-            add_part(name)
-    if not parts:
-        sections.append('<p class="pending">The lessons for this unit appear when you reach it. '
-                        "The objectives, incidents and lab below are already set.</p>")
-
     lab = site.labs[unit["lab"]]
-    guide = ""
-    if "lab.md" in parts:
-        guide = f'<h3>Lab guide: {esc(parts["lab.md"]["title"])}</h3><div class="prose">{parts["lab.md"]["html"]}</div>'
-    add("lab", "Lab", f"Lab: {esc(lab['name'])}{unchecked_flag(lab)}", lab_facts(lab) + guide)
+    lab_heading = f"Lab: {esc(lab['name'])}{unchecked_flag(lab)}"
+    if days:
+        add("plan", "This week", "This week", schedule_markup(site, slug, ""))
+        first_lab = next((day["number"] for day in days if day["kind"] == "lab"), None)
+        for day in days:
+            flag = ' <span class="today-flag">Today</span>' if when(site, day) == "today" else ""
+            facts = f"<h3>{lab_heading}</h3>{lab_facts(lab)}" if day["number"] == first_lab else ""
+            add(f"day-{day['number']}", "", f"Day {day['number']}: {esc(day['title'])}",
+                f'<p class="dateline"><time datetime="{day["date"].isoformat()}">{short_date(day["date"])}</time>'
+                f' · {day_meta(day)}{flag}</p>{facts}<div class="prose">{day["html"]}</div>')
+        if first_lab:
+            contents.append(f'<a href="#day-{first_lab}">Lab</a>')
+    else:
+        if site.states[slug] == "current":
+            pending = ("This is your current unit. Its daily sessions haven't been written yet; they appear "
+                       "after the routine's next run. The objectives, incidents and lab here are ready now.")
+        else:
+            pending = ("This unit's daily sessions are written when you reach it. "
+                       "The objectives, incidents and lab here are already set.")
+        sections.append(f'<p class="pending">{pending}</p>')
+        add("lab", "Lab", lab_heading, lab_facts(lab))
 
-    for name in ("review.md", "debrief.md"):
-        if name in parts:
-            add_part(name)
+    if content.get("debrief"):
+        debrief = content["debrief"]
+        add("debrief", "Debrief", f"Debrief: {esc(debrief['title'])}",
+            f'<p class="dateline"><time datetime="{debrief["date"].isoformat()}">{nice_date(debrief["date"])}</time></p>'
+            f'<div class="prose">{debrief["html"]}</div>')
 
     add("progress", "Your progress", "Your progress", progress_markup(site, slug))
 
@@ -742,7 +821,9 @@ def build_unit(site: Site, unit: dict, template: Template) -> str:
 def build_cases(site: Site, template: Template) -> str:
     taught = {}
     for unit in site.units:
-        lesson_cases = [c for p in site.content.get(unit["slug"], {}).get("parts", {}).values() for c in p["cases"]]
+        content = site.content.get(unit["slug"], {})
+        written = content.get("days", []) + ([content["debrief"]] if content.get("debrief") else [])
+        lesson_cases = [c for part in written for c in part["cases"]]
         for case in dict.fromkeys((unit.get("cases") or []) + lesson_cases):
             taught.setdefault(case, []).append(unit)
     entries = []
@@ -804,20 +885,23 @@ def build_news(site: Site, issue: dict, template: Template) -> str:
 
 
 def build_feed(site: Site) -> str:
+    """One entry per daily session once its day has come, plus the news."""
     base = SITE_URL or "."
     items = [
-        (site.content[u["slug"]]["published"], f"Unit {u['number']}: {u['title']}",
-         f"{base}/units/{u['slug']}.html", u["objectives"][0])
-        for u in site.units if site.content.get(u["slug"], {}).get("published")
-    ] + [(n["date"], n["title"], f"{base}/news/{n['slug']}.html", n["summary"]) for n in site.news]
+        (day["date"], f"Unit {u['number']}, day {day['number']}: {day['title']}",
+         f"{base}/units/{u['slug']}.html#day-{day['number']}", f"{day_meta(day)} · {u['title']}")
+        for u in site.units for day in site.content.get(u["slug"], {}).get("days", [])
+        if day["date"] <= site.today
+    ] + [(n["date"], n["title"], f"{base}/news/{n['slug']}.html", n["summary"])
+         for n in site.news if n["date"] <= site.today]
     items.sort(key=lambda item: item[0], reverse=True)
-    updated = items[0][0] if items else dt.date.today()
+    updated = items[0][0] if items else site.today
     entries = "".join(
         "<entry>"
         f"<title>{esc(title)}</title>"
         f'<link href="{esc(url)}"/>'
         f"<id>{esc(url)}</id>"
-        f"<updated>{day.isoformat()}T07:00:00Z</updated>"
+        f"<updated>{day.isoformat()}T05:00:00Z</updated>"
         f"<summary>{esc(summary)}</summary>"
         "</entry>"
         for day, title, url, summary in items[:30]
@@ -829,14 +913,14 @@ def build_feed(site: Site) -> str:
         f'<link href="{esc(base)}/"/>'
         f'<link rel="self" href="{esc(base)}/feed.xml"/>'
         f"<id>{esc(base)}/</id>"
-        f"<updated>{updated.isoformat()}T07:00:00Z</updated>"
+        f"<updated>{updated.isoformat()}T05:00:00Z</updated>"
         f"<author><name>{esc(SITE_TITLE)}</name></author>"
         f"{entries}</feed>\n"
     )
 
 
-def build_site(root: Path, out: Path) -> Site:
-    site = Site(root)
+def build_site(root: Path, out: Path, today: dt.date | None = None) -> Site:
+    site = Site(root, today)
     template = Template((root / "theme" / "base.html").read_text(encoding="utf-8"))
     if out.exists():
         shutil.rmtree(out)

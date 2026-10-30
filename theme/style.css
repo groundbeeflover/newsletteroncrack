@@ -243,6 +243,37 @@ details > :last-child { margin-bottom: 0; }
   white-space: nowrap;
 }
 
+/* The week's schedule */
+
+.schedule { list-style: none; margin: 0 0 1.25rem; padding: 0; }
+.schedule li {
+  display: grid;
+  grid-template-columns: 6.25rem 1fr;
+  gap: 0 0.75rem;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--rule);
+}
+.schedule .when { color: var(--muted); font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.schedule .meta { font-size: 0.875rem; }
+.schedule li.past a { color: var(--muted); }
+.schedule li.today .when { color: var(--signal-ink); font-weight: 700; }
+.today-flag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.35rem;
+  border-radius: 3px;
+  background: var(--signal);
+  color: #1b2530;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-style: normal;
+  vertical-align: 0.15em;
+}
+@media (max-width: 30rem) {
+  .schedule li { grid-template-columns: 1fr; }
+}
+
 /* Course map */
 
 .course-page .track { margin: 1.5rem 0 1rem; }

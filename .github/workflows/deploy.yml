@@ -3,6 +3,10 @@ name: Deploy site
 on:
   push:
     branches: [main]
+  # Rebuild every morning so "today" on the home page moves to the next session.
+  # 04:00 UTC is 05:00 or 06:00 in Amsterdam.
+  schedule:
+    - cron: "0 4 * * *"
   workflow_dispatch:
 
 permissions:
