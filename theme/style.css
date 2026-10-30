@@ -119,20 +119,24 @@ h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
   background: var(--cell-empty);
 }
 .cell.done { background: var(--signal); }
-.cell.next { background: transparent; box-shadow: inset 0 0 0 2px var(--signal); }
+.cell.low { background: repeating-linear-gradient(135deg, var(--signal) 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px var(--signal); }
+.cell.current { background: transparent; box-shadow: inset 0 0 0 2px var(--signal); }
+.cell.published { background: transparent; box-shadow: inset 0 0 0 1px var(--muted); }
 .track.compact .cell { width: 0.62rem; height: 1.25rem; }
 .track-caption { margin: 0.9rem 0 0; font-size: 1rem; color: var(--muted); }
 .track-caption strong { color: var(--ink); font-weight: 700; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .cell.next { animation: pulse 2.4s ease-in-out 1; }
+  .cell.current { animation: pulse 2.4s ease-in-out 1; }
   @keyframes pulse { 50% { box-shadow: inset 0 0 0 2px var(--signal), 0 0 0 4px color-mix(in srgb, var(--signal) 35%, transparent); } }
 }
 
 /* Archive */
 
 .archive { margin-top: 3.5rem; }
-.archive h2, .track-page h2 { font-size: 1.3rem; margin: 0 0 0.75rem; }
+.archive h2 { font-size: 1.3rem; margin: 0 0 0.75rem; }
+.archive h2 a { color: inherit; text-decoration: none; }
+.archive h2 a:hover { text-decoration: underline; }
 .archive ol { list-style: none; margin: 0; padding: 0; }
 .archive li {
   display: grid;
@@ -201,22 +205,119 @@ summary { cursor: pointer; font-weight: 700; }
 details[open] summary { margin-bottom: 0.6rem; }
 details > :last-child { margin-bottom: 0; }
 
-/* Track page */
+/* Shared bits */
 
-.track-page .track { margin: 1.5rem 0 3rem; }
+.meta { color: var(--muted); font-size: 0.95rem; }
+.year { color: var(--muted); font-weight: 400; }
+.objectives, .steps, .mentions { padding-left: 1.3rem; }
+.objectives li, .steps li, .mentions li { margin-bottom: 0.35rem; }
+.latest h2.small { font-size: 1.05rem; margin: 1.75rem 0 0.4rem; }
+
+.status { white-space: nowrap; color: var(--muted); font-size: 0.875rem; font-style: normal; }
+.status::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.85rem;
+  margin-right: 0.4rem;
+  vertical-align: -0.08rem;
+  border-radius: 1px;
+  background: var(--cell-empty);
+}
+.status.done::before { background: var(--signal); }
+.status.low::before { background: repeating-linear-gradient(135deg, var(--signal) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px var(--signal); }
+.status.current { color: var(--signal-ink); }
+.status.current::before { background: transparent; box-shadow: inset 0 0 0 2px var(--signal); }
+.status.published::before { background: transparent; box-shadow: inset 0 0 0 1px var(--muted); }
+
+.unchecked {
+  display: inline-block;
+  padding: 0 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  color: var(--signal-ink);
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-style: normal;
+  vertical-align: 0.2em;
+  white-space: nowrap;
+}
+
+/* Course map */
+
+.course-page .track { margin: 1.5rem 0 1rem; }
 .module { margin-top: 2.5rem; }
-.module h2 { display: inline; }
-.module-count { display: inline; margin-left: 0.6rem; color: var(--muted); font-size: 0.95rem; }
-.items { list-style: none; margin: 0.75rem 0 0; padding: 0; }
-.items li {
+.module h2 { font-size: 1.3rem; margin: 0 0 0.5rem; }
+.unit-list { list-style: none; margin: 0; padding: 0; }
+.unit-list li {
   display: grid;
-  grid-template-columns: 1.1rem 1fr auto;
+  grid-template-columns: 1.75rem 1fr auto;
   gap: 0 0.75rem;
   align-items: baseline;
-  padding: 0.4rem 0;
+  padding: 0.6rem 0;
   border-top: 1px solid var(--rule);
 }
-.tick { width: 0.62rem; height: 1rem; border-radius: 1px; background: var(--cell-empty); align-self: center; }
-.items li.done .tick { background: var(--signal); }
-.items li.done .item-title { color: var(--muted); }
-.items time { color: var(--muted); font-size: 0.875rem; }
+.unit-list .num { color: var(--muted); font-size: 0.95rem; text-align: right; font-variant-numeric: tabular-nums; }
+.unit-list a { color: var(--ink); text-decoration: none; }
+.unit-list a:hover { text-decoration: underline; }
+.unit-list .meta { margin: 0.15rem 0 0; font-size: 0.875rem; }
+.unit-list li.done a, .unit-list li.low a { color: var(--muted); }
+@media (max-width: 30rem) {
+  .unit-list li { grid-template-columns: 1.5rem 1fr; }
+  .unit-list .status { grid-column: 2; margin-top: 0.2rem; }
+}
+
+/* Unit page */
+
+.contents { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin-top: 1.1rem; font-size: 0.95rem; }
+.contents a { color: var(--muted); }
+.part { margin-top: 3rem; }
+.part > h2 {
+  font-size: 1.55rem;
+  letter-spacing: -0.012em;
+  margin: 0 0 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--ink);
+}
+.part > h3 { font-size: 1.2rem; margin: 2rem 0 0.4rem; }
+.part > .dateline { margin: -0.35rem 0 1.1rem; }
+.part details { margin-top: 1rem; }
+.pending { margin: 2.5rem 0 0; padding: 0.9rem 1rem; border: 1px dashed var(--rule); border-radius: 4px; color: var(--muted); }
+
+.case-card { margin: 0 0 1.5rem; padding-left: 1rem; border-left: 3px solid var(--signal); }
+.case-card h3 { margin: 0 0 0.3rem; font-size: 1.1rem; }
+.case-card p { margin: 0 0 0.5rem; }
+
+.facts { display: grid; grid-template-columns: 9rem 1fr; gap: 0.55rem 1rem; margin: 0 0 1.5rem; }
+.facts dt { padding-top: 0.12rem; color: var(--muted); font-size: 0.95rem; font-weight: 700; }
+.facts dd { margin: 0; }
+.facts ul { margin: 0; padding-left: 1.1rem; }
+@media (max-width: 30rem) {
+  .facts { grid-template-columns: 1fr; gap: 0.1rem; }
+  .facts dd { margin-bottom: 0.7rem; }
+}
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 3.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.95rem;
+}
+
+/* Incident library */
+
+.case { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+.case h2 { font-size: 1.35rem; margin: 0 0 0.6rem; }
+.case h3 { font-size: 1rem; margin: 1.2rem 0 0.3rem; }
+.case ul { margin: 0 0 1rem; padding-left: 1.3rem; }
+.case li { margin-bottom: 0.3rem; }
+.sources .kind {
+  margin-right: 0.3rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,999 @@
+# Incident library: the real cases that lessons are anchored on.
+#
+# You own this file. The weekly routine reads it and never edits it. It may only
+# use an entry whose `checked` field is set; until you've checked one, a lesson
+# either uses a different checked case or teaches without one.
+#
+# Fields
+#   id                 referenced from `cases` in course/units.yaml
+#   title, year        year the incident happened (not when it was reported)
+#   summary            what happened, kept to claims the sources support
+#   root_cause         the gap that made it possible, in one line
+#   would_have_helped  controls that would have prevented or limited it
+#   sources            kind is official (government or regulator), court,
+#                      company (the victim or vendor), research, or press
+#   checked            null until you've read the sources and agree with the
+#                      summary; then the date you checked it
+#
+# Every URL below loaded on 2026-10-30 and its page matched the description.
+# A few sites block scripts (justice.gov, ftc.gov, uber.com, dl.acm.org); those
+# were opened in a browser instead. Where a fact rests on press reporting rather
+# than an official or company source, the summary says so.
+
+cases:
+
+  - id: target-2013
+    title: "Target payment card breach"
+    year: 2013
+    summary: >-
+      Attackers got into Target's network using credentials stolen from an HVAC
+      contractor, moved to the point-of-sale systems, and stole tens of millions
+      of payment cards during the holiday season. Press reports, which Target
+      later partly confirmed, say its malware-detection tool raised alerts that
+      the security team did not act on.
+    root_cause: "Third-party access that reached the payment network, and alerts nobody acted on"
+    would_have_helped:
+      - "Segmenting the payment systems from vendor-facing systems"
+      - "Least-privilege, monitored access for contractors"
+      - "A triage process that escalates high-severity alerts"
+    sources:
+      - kind: press
+        title: "Target Hackers Broke in Via HVAC Company (Krebs on Security)"
+        url: https://krebsonsecurity.com/2014/02/target-hackers-broke-in-via-hvac-company/
+      - kind: press
+        title: "Email Attack on Vendor Set Up Breach at Target (Krebs on Security)"
+        url: https://krebsonsecurity.com/2014/02/email-attack-on-vendor-set-up-breach-at-target/
+      - kind: press
+        title: "Target says it declined to act on early alert of cyber breach (Business Insurance)"
+        url: https://www.businessinsurance.com/target-says-it-declined-to-act-on-early-alert-of-cyber-breach/
+      - kind: press
+        title: "Did Target Ignore Security Warning? (GovInfoSecurity)"
+        url: https://www.govinfosecurity.com/did-target-ignore-security-warning-a-6630
+    checked: null
+
+  - id: mirai-2016
+    title: "Mirai IoT botnet"
+    year: 2016
+    summary: >-
+      Mirai infected hundreds of thousands of cameras, routers and DVRs by
+      logging in with factory-default usernames and passwords, then used them
+      for some of the largest denial-of-service attacks seen at the time,
+      including one on the DNS provider Dyn. Its author released the source
+      code, which spawned many variants.
+    root_cause: "Internet-exposed devices with default credentials that owners could not or did not change"
+    would_have_helped:
+      - "Unique per-device credentials set at the factory"
+      - "Not exposing management services such as telnet to the internet"
+      - "Network-level filtering of outbound attack traffic"
+    sources:
+      - kind: research
+        title: "Understanding the Mirai Botnet (USENIX Security 2017)"
+        url: https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/antonakakis
+      - kind: press
+        title: "Source Code for IoT Botnet 'Mirai' Released (Krebs on Security)"
+        url: https://krebsonsecurity.com/2016/10/source-code-for-iot-botnet-mirai-released/
+    checked: null
+
+  - id: diginotar-2011
+    title: "DigiNotar certificate authority compromise"
+    year: 2011
+    summary: >-
+      An intruder took over the Dutch certificate authority DigiNotar and issued
+      fraudulent certificates, including one for google.com that was used to
+      intercept connections from users in Iran. Browsers removed DigiNotar from
+      their trust stores, the Dutch government had to replace certificates it
+      relied on, and the company went bankrupt.
+    root_cause: "Poorly segmented, poorly monitored CA infrastructure trusted by every browser"
+    would_have_helped:
+      - "Strict isolation and monitoring of certificate-signing systems"
+      - "Certificate transparency, which makes mis-issued certificates visible"
+      - "Fast, honest disclosure once the breach was found"
+    sources:
+      - kind: official
+        title: "Black Tulip: report of the investigation into the DigiNotar breach (Fox-IT, for the Dutch government)"
+        url: https://zoek.officielebekendmakingen.nl/blg-191225.pdf
+      - kind: official
+        title: "Operation Black Tulip: certificate authorities lose authority (ENISA)"
+        url: https://www.enisa.europa.eu/media/news-items/operation-black-tulip
+      - kind: press
+        title: "Inside 'Operation Black Tulip': DigiNotar hack analysed (The Register)"
+        url: https://www.theregister.com/2011/09/06/diginotar_audit_damning_fail/
+    checked: null
+
+  - id: sea-turtle-2019
+    title: "Sea Turtle DNS hijacking campaign"
+    year: 2019
+    summary: >-
+      A state-sponsored group compromised DNS registrars and registries, then
+      changed DNS records so that traffic for government and infrastructure
+      organisations went to attacker servers. With valid certificates for the
+      hijacked names, they collected credentials from people who saw nothing
+      wrong.
+    root_cause: "Weak protection of the accounts that control DNS records"
+    would_have_helped:
+      - "Registry lock and MFA on registrar accounts"
+      - "Monitoring DNS records and certificate transparency logs for unexpected changes"
+      - "DNSSEC where the registrar chain supports it"
+    sources:
+      - kind: research
+        title: "DNS Hijacking Abuses Trust In Core Internet Service (Cisco Talos)"
+        url: https://blog.talosintelligence.com/seaturtle/
+      - kind: official
+        title: "ED 19-01: Mitigate DNS Infrastructure Tampering (CISA)"
+        url: https://www.cisa.gov/news-events/directives/ed-19-01-mitigate-dns-infrastructure-tampering-closed
+    checked: null
+
+  - id: linkedin-2012
+    title: "LinkedIn password breach"
+    year: 2012
+    summary: >-
+      About 6.5 million LinkedIn password hashes were posted online in 2012.
+      They were unsalted SHA-1 hashes, so most were cracked quickly. In 2016 a
+      further set from the same theft appeared, which LinkedIn said covered more
+      than 100 million members.
+    root_cause: "Passwords stored as fast, unsalted hashes"
+    would_have_helped:
+      - "A slow, salted password hash such as bcrypt or Argon2"
+      - "Forcing resets for every affected account as soon as the theft was known"
+    sources:
+      - kind: press
+        title: "8 million leaked passwords connected to LinkedIn, dating website (Ars Technica)"
+        url: https://arstechnica.com/information-technology/2012/06/8-million-leaked-passwords-connected-to-linkedin/
+      - kind: company
+        title: "Protecting Our Members (LinkedIn, 2016)"
+        url: https://www.linkedin.com/blog/member/trust-and-safety/protecting-our-members
+    checked: null
+
+  - id: adobe-2013
+    title: "Adobe customer data and source code breach"
+    year: 2013
+    summary: >-
+      Attackers stole Adobe source code and records for millions of customers.
+      The passwords were encrypted rather than hashed, using a block cipher in
+      ECB mode, so identical passwords produced identical ciphertext and leaked
+      patterns that made guessing easy.
+    root_cause: "Reversible encryption in ECB mode used where a password hash was needed"
+    would_have_helped:
+      - "A slow, salted password hash instead of encryption"
+      - "Knowing why ECB mode leaks structure"
+    sources:
+      - kind: press
+        title: "Adobe To Announce Source Code, Customer Data Breach (Krebs on Security)"
+        url: https://krebsonsecurity.com/2013/10/adobe-to-announce-source-code-customer-data-breach/
+      - kind: press
+        title: "How an epic blunder by Adobe could strengthen hand of password crackers (Ars Technica)"
+        url: https://arstechnica.com/information-technology/2013/11/how-an-epic-blunder-by-adobe-could-strengthen-hand-of-password-crackers/
+    checked: null
+
+  - id: 23andme-2023
+    title: "23andMe credential stuffing"
+    year: 2023
+    summary: >-
+      Attackers logged in to customer accounts with passwords reused from other
+      breaches. Through the DNA Relatives feature, a relatively small number of
+      compromised accounts exposed data about millions of other users. The UK
+      regulator later fined the company for failing to protect UK users' data.
+    root_cause: "Password reuse, without mandatory MFA or effective credential-stuffing detection"
+    would_have_helped:
+      - "Mandatory MFA"
+      - "Detecting and rate-limiting login attempts from many accounts at once"
+      - "Limiting how much data one account can see about others"
+    sources:
+      - kind: company
+        title: "Addressing Data Security Concerns (23andMe)"
+        url: https://www.23andme.org/blog/articles/addressing-data-security-concerns/
+      - kind: official
+        title: "23andMe fined £2.31 million for failing to protect UK users' genetic data (ICO)"
+        url: https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/2025/06/23andme-fined-for-failing-to-protect-uk-users-genetic-data/
+    checked: null
+
+  - id: uber-2022
+    title: "Uber breach through MFA fatigue"
+    year: 2022
+    summary: >-
+      Uber says an attacker probably bought a contractor's password after malware
+      infected the contractor's personal device, then sent repeated MFA push
+      requests until the contractor accepted one. From there the attacker reached
+      internal tools. Uber attributed the attack to someone affiliated with
+      Lapsus$.
+    root_cause: "Push-based MFA that a tired or confused user can approve"
+    would_have_helped:
+      - "Phishing-resistant MFA such as FIDO2 security keys"
+      - "Number matching and rate limits on push requests"
+      - "Alerting on repeated denied MFA prompts"
+    sources:
+      - kind: company
+        title: "Security update (Uber)"
+        url: https://www.uber.com/newsroom/security-update
+      - kind: press
+        title: "Multi-Factor Authentication Fatigue Key Factor in Uber Breach (InfoQ)"
+        url: https://www.infoq.com/news/2022/09/Uber-breach-mfa-fatigue/
+    checked: null
+
+  - id: snowflake-2024
+    title: "Snowflake customer data theft"
+    year: 2024
+    summary: >-
+      A financially motivated group logged in to many companies' Snowflake
+      accounts with credentials stolen by infostealer malware, some of them
+      years old, then stole data and extorted the victims. Mandiant found the
+      affected accounts lacked MFA. Snowflake's own platform was not breached.
+    root_cause: "Stolen, never-rotated credentials on accounts without MFA"
+    would_have_helped:
+      - "MFA enforced on every account"
+      - "Rotating credentials and removing unused accounts"
+      - "Restricting logins to known networks"
+    sources:
+      - kind: research
+        title: "UNC5537 Targets Snowflake Customer Instances for Data Theft and Extortion (Mandiant)"
+        url: https://cloud.google.com/blog/topics/threat-intelligence/unc5537-snowflake-data-theft-extortion
+    checked: null
+
+  - id: coalfire-iowa-2019
+    title: "Penetration testers arrested at the Dallas County courthouse"
+    year: 2019
+    summary: >-
+      Two Coalfire testers hired by the Iowa Judicial Branch to test courthouse
+      security were arrested during a physical break-in test. The county
+      disputed that the state had authority to permit testing of a
+      county-owned building. Charges were eventually dropped, and in 2026 the
+      county settled the testers' lawsuit.
+    root_cause: "Unclear authority over scope: who owned the building and who could authorise the test"
+    would_have_helped:
+      - "Confirming the authorising party actually controls everything in scope"
+      - "A signed authorisation letter naming every property and the people to call"
+    sources:
+      - kind: press
+        title: "Cybersecurity Pen-Test Arrests: 5 Years Later (Dark Reading)"
+        url: https://www.darkreading.com/vulnerabilities-threats/dark-reading-confidential-pen-test-arrests-five-years-later
+      - kind: press
+        title: "Cybersecurity testers reach $600,000 settlement after wrongful arrest (KCRG)"
+        url: https://www.kcrg.com/2026/01/30/cybersecurity-testers-reach-600000-settlement-after-wrongful-arrest/
+    checked: null
+
+  - id: first-american-2019
+    title: "First American Financial document exposure"
+    year: 2019
+    summary: >-
+      First American's website served about 885 million mortgage-related
+      documents, including bank details and Social Security numbers, to anyone
+      who had a link. Document numbers appeared to be sequential, so changing
+      the number in a URL revealed other people's records, with no login
+      required.
+    root_cause: "No authorization check on objects addressed by guessable IDs"
+    would_have_helped:
+      - "Checking on every request that the user may see that document"
+      - "Unguessable, expiring links for shared documents"
+      - "Alerting on one client fetching many sequential IDs"
+    sources:
+      - kind: press
+        title: "First American Financial Corp. Leaked Hundreds of Millions of Title Insurance Records (Krebs on Security)"
+        url: https://krebsonsecurity.com/2019/05/first-american-financial-corp-leaked-hundreds-of-millions-of-title-insurance-records/
+    checked: null
+
+  - id: optus-2022
+    title: "Optus customer data breach"
+    year: 2022
+    summary: >-
+      An attacker took personal data on about 9.5 million current and former
+      Optus customers. Australia's media regulator alleges a coding error in the
+      access controls of a dormant, internet-facing API made it possible, and
+      that Optus had fixed the same error elsewhere but not there. The media
+      and privacy regulators both started court action against Optus in 2024.
+    root_cause: "A forgotten, internet-facing API with broken access control (as alleged by ACMA)"
+    would_have_helped:
+      - "An inventory of every internet-facing API, including unused ones"
+      - "Authentication and authorization on every API endpoint"
+      - "Applying a fix everywhere the same code pattern occurs"
+    sources:
+      - kind: official
+        title: "Australian Information Commissioner takes civil penalty action against Optus (OAIC)"
+        url: https://www.oaic.gov.au/news/media-centre/australian-information-commissioner-takes-civil-penalty-action-against-optus
+      - kind: press
+        title: "Optus breach occurred due to a coding error, alleges ACMA (CSO Online)"
+        url: https://www.csoonline.com/article/2492520/optus-breach-occurred-due-to-a-coding-error-alleges-acma.html
+    checked: null
+
+  - id: moveit-2023
+    title: "MOVEit Transfer mass exploitation"
+    year: 2023
+    summary: >-
+      The Cl0p ransomware group exploited a previously unknown SQL injection
+      flaw (CVE-2023-34362) in the MOVEit Transfer file-sharing product,
+      installed a web shell, and stole data from a very large number of
+      organisations at once.
+    root_cause: "SQL injection in an internet-facing file-transfer product"
+    would_have_helped:
+      - "Parameterized queries in the product"
+      - "Not exposing file-transfer servers more widely than needed"
+      - "Monitoring for new files in web directories, which reveals web shells"
+    sources:
+      - kind: official
+        title: "#StopRansomware: CL0P Ransomware Gang Exploits CVE-2023-34362 MOVEit Vulnerability (CISA)"
+        url: https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-158a
+      - kind: official
+        title: "CVE-2023-34362 (NVD)"
+        url: https://nvd.nist.gov/vuln/detail/CVE-2023-34362
+    checked: null
+
+  - id: samy-worm-2005
+    title: "The Samy worm on MySpace"
+    year: 2005
+    summary: >-
+      Samy Kamkar slipped JavaScript past MySpace's filters into his profile.
+      Anyone who viewed it ran the script, which added him as a friend and
+      copied itself to their profile. It spread to over a million profiles in
+      about a day.
+    root_cause: "Stored XSS: filtering that tried to block bad input instead of encoding output"
+    would_have_helped:
+      - "Context-aware output encoding"
+      - "A Content Security Policy that forbids inline scripts"
+    sources:
+      - kind: research
+        title: "MySpace Worm Explanation (Samy Kamkar)"
+        url: https://samy.pl/myspace/tech.html
+    checked: null
+
+  - id: british-airways-2018
+    title: "British Airways payment page skimming"
+    year: 2018
+    summary: >-
+      Attackers modified a JavaScript file on British Airways' website so that
+      payment details typed by customers were also sent to an attacker server.
+      The UK regulator fined BA £20 million in 2020 and found it had lacked
+      appropriate security measures. Security researchers attributed the attack
+      to the Magecart groups.
+    root_cause: "Attacker-modified script running on the payment page"
+    would_have_helped:
+      - "A Content Security Policy limiting where scripts load from and send data"
+      - "Subresource integrity and monitoring of page scripts for changes"
+      - "MFA and least privilege on the systems that host site code"
+    sources:
+      - kind: press
+        title: "British Airways fined £20m for Magecart hack (The Register)"
+        url: https://www.theregister.com/2020/10/16/british_airways_ico_fine_20m/
+    checked: null
+
+  - id: citrix-bleed-2023
+    title: "Citrix Bleed session hijacking"
+    year: 2023
+    summary: >-
+      A flaw in Citrix NetScaler appliances (CVE-2023-4966) leaked memory that
+      contained valid session tokens. Attackers, including LockBit ransomware
+      affiliates, replayed those tokens to take over sessions that had already
+      passed MFA.
+    root_cause: "Memory disclosure exposing session tokens that worked as full credentials"
+    would_have_helped:
+      - "Patching edge devices quickly"
+      - "Ending all existing sessions after patching"
+      - "Binding sessions to the client and alerting on reuse from new locations"
+    sources:
+      - kind: official
+        title: "#StopRansomware: LockBit 3.0 Affiliates Exploit CVE 2023-4966 Citrix Bleed (CISA)"
+        url: https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-325a
+    checked: null
+
+  - id: storm-0558-2023
+    title: "Storm-0558 forged Microsoft tokens"
+    year: 2023
+    summary: >-
+      A China-based group used a stolen Microsoft consumer signing key to forge
+      authentication tokens and read email in Exchange Online at government and
+      other organisations. A validation flaw let a consumer key sign enterprise
+      tokens. The US Cyber Safety Review Board called the intrusion preventable
+      and criticised Microsoft's security culture.
+    root_cause: "A signing key that could be stolen, and token validation that accepted it where it should not"
+    would_have_helped:
+      - "Storing signing keys in hardware and rotating them"
+      - "Strict checks on which key may sign which kind of token"
+      - "Audit logging available to every customer by default"
+    sources:
+      - kind: official
+        title: "Cyber Safety Review Board report on the Summer 2023 Microsoft Exchange Online intrusion (CISA)"
+        url: https://www.cisa.gov/resources-tools/resources/CSRB-Review-Summer-2023-MEO-Intrusion
+      - kind: company
+        title: "Results of Major Technical Investigations for Storm-0558 Key Acquisition (Microsoft MSRC)"
+        url: https://www.microsoft.com/en-us/msrc/blog/2023/09/results-of-major-technical-investigations-for-storm-0558-key-acquisition
+    checked: null
+
+  - id: shellshock-2014
+    title: "Shellshock"
+    year: 2014
+    summary: >-
+      A bug in how bash parsed function definitions in environment variables
+      (CVE-2014-6271) meant text placed after a function definition was run as a
+      command. Web servers that passed request headers to bash scripts through
+      environment variables could be made to run commands remotely.
+    root_cause: "Untrusted data passed into a shell that treated part of it as code"
+    would_have_helped:
+      - "Not passing request data to shell scripts"
+      - "Retiring CGI scripts and other old interfaces that invoke a shell"
+    sources:
+      - kind: official
+        title: "CVE-2014-6271 (NVD)"
+        url: https://nvd.nist.gov/vuln/detail/CVE-2014-6271
+      - kind: research
+        title: "CVE-2014-6271: remote code execution through bash (oss-security)"
+        url: https://www.openwall.com/lists/oss-security/2014/09/24/11
+    checked: null
+
+  - id: log4shell-2021
+    title: "Log4Shell"
+    year: 2021
+    summary: >-
+      Log4j, a Java logging library used almost everywhere, would expand lookups
+      in logged text, including ones that fetched and ran code from a remote
+      server (CVE-2021-44228). Any application that logged attacker-controlled
+      text could be compromised. The Cyber Safety Review Board expected
+      vulnerable copies to linger for years.
+    root_cause: "A logging library that interpreted logged data as instructions, hidden deep in dependency trees"
+    would_have_helped:
+      - "Not evaluating untrusted data"
+      - "A software bill of materials, so you know where a library is used"
+      - "Egress filtering so servers can't fetch code from the internet"
+    sources:
+      - kind: official
+        title: "Review of the December 2021 Log4j Event (Cyber Safety Review Board)"
+        url: https://www.cisa.gov/sites/default/files/publications/CSRB-Report-on-Log4-July-11-2022_508.pdf
+      - kind: official
+        title: "CVE-2021-44228 (NVD)"
+        url: https://nvd.nist.gov/vuln/detail/CVE-2021-44228
+      - kind: company
+        title: "Security (Apache Logging Services)"
+        url: https://logging.apache.org/security.html
+    checked: null
+
+  - id: citrix-adc-2019
+    title: "Citrix ADC path traversal (CVE-2019-19781)"
+    year: 2019
+    summary: >-
+      A path traversal flaw in Citrix ADC and Gateway appliances let
+      unauthenticated attackers reach files and functions that should have been
+      off limits, leading to code execution. It was exploited at scale soon
+      after public exploit code appeared in January 2020.
+    root_cause: "Path traversal on an internet-facing appliance"
+    would_have_helped:
+      - "Normalising paths and checking them against an allowlist"
+      - "Applying vendor mitigations as soon as they're published"
+      - "Hunting for compromise after patching, not only patching"
+    sources:
+      - kind: official
+        title: "Detecting Citrix CVE-2019-19781 (CISA)"
+        url: https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-031a
+      - kind: official
+        title: "CVE-2019-19781 (NVD)"
+        url: https://nvd.nist.gov/vuln/detail/CVE-2019-19781
+    checked: null
+
+  - id: capital-one-2019
+    title: "Capital One cloud breach"
+    year: 2019
+    summary: >-
+      A former AWS employee exploited a misconfigured web application firewall
+      in Capital One's AWS environment. The firewall could be tricked into
+      requesting the cloud metadata service, which returned temporary
+      credentials for its role, and that role could read large amounts of data
+      in storage. More than 100 million people were affected; she was convicted
+      in 2022.
+    root_cause: "SSRF to the metadata service, combined with an over-privileged role"
+    would_have_helped:
+      - "IMDSv2, which blocks simple SSRF access to metadata"
+      - "Least-privilege IAM roles"
+      - "Alerting when instance credentials are used in unusual ways"
+    sources:
+      - kind: court
+        title: "Former Seattle tech worker convicted of wire fraud and computer intrusions (US DOJ)"
+        url: https://www.justice.gov/usao-wdwa/pr/former-seattle-tech-worker-convicted-wire-fraud-and-computer-intrusions
+      - kind: company
+        title: "2019 Capital One Cyber Incident: What Happened (Capital One)"
+        url: https://www.capitalone.com/digital/facts2019/
+      - kind: press
+        title: "What We Can Learn from the Capital One Hack (Krebs on Security)"
+        url: https://krebsonsecurity.com/2019/08/what-we-can-learn-from-the-capital-one-hack/
+    checked: null
+
+  - id: equifax-2017
+    title: "Equifax breach"
+    year: 2017
+    summary: >-
+      Attackers exploited an Apache Struts vulnerability that had been public,
+      with a fix available, for about two months, then stayed in the network
+      for weeks and took data on about 148 million people. A House committee
+      report found that an expired certificate had disabled the tool monitoring
+      that traffic for 19 months, so the data leaving went unseen.
+    root_cause: "A known, patchable vulnerability left open, and monitoring that silently stopped working"
+    would_have_helped:
+      - "An asset inventory that shows where vulnerable software runs"
+      - "Patch deadlines driven by exploitation, not just severity"
+      - "Monitoring that alerts when the monitoring itself breaks"
+    sources:
+      - kind: official
+        title: "The Equifax Data Breach (US House Committee on Oversight, 2018)"
+        url: https://oversight.house.gov/wp-content/uploads/2018/12/Equifax-Report.pdf
+    checked: null
+
+  - id: morris-worm-1988
+    title: "The Morris worm"
+    year: 1988
+    summary: >-
+      One of the first internet worms spread through a buffer overflow in the
+      fingerd service, a debug mode in sendmail, and weak passwords. A flaw in
+      how it decided whether to reinfect machines overloaded a large share of
+      the early internet. It led to the first conviction under the US Computer
+      Fraud and Abuse Act.
+    root_cause: "Memory-unsafe network services and weak passwords, on a network built on trust"
+    would_have_helped:
+      - "Bounds checking in network-facing code"
+      - "Turning off debug features in production"
+      - "A way to coordinate response, which led to the creation of CERT"
+    sources:
+      - kind: official
+        title: "Morris Worm (FBI)"
+        url: https://www.fbi.gov/history/cases-and-criminals/morris-worm
+      - kind: research
+        title: "The Internet Worm Program: An Analysis (Eugene Spafford, Purdue)"
+        url: https://spaf.cerias.purdue.edu/tech-reps/823.pdf
+    checked: null
+
+  - id: heartbleed-2014
+    title: "Heartbleed"
+    year: 2014
+    summary: >-
+      A missing bounds check in OpenSSL's TLS heartbeat extension
+      (CVE-2014-0160) let anyone ask a server to send back chunks of its memory,
+      which could include private keys, session cookies and passwords. A large
+      share of HTTPS servers were affected.
+    root_cause: "Trusting a length field from the network in memory-unsafe code"
+    would_have_helped:
+      - "Bounds checking and fuzzing of protocol parsers"
+      - "Rotating keys and certificates after the fix, not only patching"
+      - "Funding for critical open-source projects"
+    sources:
+      - kind: research
+        title: "The Heartbleed Bug (Codenomicon)"
+        url: https://heartbleed.com/
+      - kind: company
+        title: "OpenSSL Security Advisory, 7 April 2014"
+        url: https://openssl-library.org/news/secadv/20140407.txt
+    checked: null
+
+  - id: wannacry-2017
+    title: "WannaCry"
+    year: 2017
+    summary: >-
+      Ransomware spread automatically through an SMBv1 vulnerability that
+      Microsoft had patched two months earlier (MS17-010). It disrupted
+      organisations worldwide, including parts of the UK's National Health
+      Service. A researcher stopped it by registering a domain the malware
+      checked before running.
+    root_cause: "Unpatched, internet- and network-reachable SMBv1"
+    would_have_helped:
+      - "Applying MS17-010 and disabling SMBv1"
+      - "Blocking SMB at network boundaries"
+      - "Segmentation so one infection can't reach every machine"
+    sources:
+      - kind: official
+        title: "Investigation: WannaCry cyber attack and the NHS (UK National Audit Office)"
+        url: https://www.nao.org.uk/reports/investigation-wannacry-cyber-attack-and-the-nhs/
+      - kind: company
+        title: "Microsoft Security Bulletin MS17-010"
+        url: https://learn.microsoft.com/en-us/security-updates/securitybulletins/2017/ms17-010
+    checked: null
+
+  - id: dirty-cow-2016
+    title: "Dirty COW"
+    year: 2016
+    summary: >-
+      A race condition in the Linux kernel's copy-on-write handling
+      (CVE-2016-5195) let an unprivileged local user write to files they could
+      only read, and so become root. The bug had been in the kernel for about
+      nine years.
+    root_cause: "A kernel race condition in memory management"
+    would_have_helped:
+      - "Prompt kernel updates"
+      - "Reducing who can run code on shared machines"
+    sources:
+      - kind: research
+        title: "Dirty COW (CVE-2016-5195)"
+        url: https://dirtycow.ninja/
+      - kind: official
+        title: "CVE-2016-5195 (NVD)"
+        url: https://nvd.nist.gov/vuln/detail/CVE-2016-5195
+    checked: null
+
+  - id: pwnkit-2022
+    title: "PwnKit"
+    year: 2022
+    summary: >-
+      Qualys found a memory corruption bug in polkit's pkexec (CVE-2021-4034), a
+      SUID-root program installed by default on most Linux distributions. It let
+      any local user become root, and had been present for over a decade.
+    root_cause: "A memory-safety bug in a SUID-root binary"
+    would_have_helped:
+      - "Fewer SUID binaries"
+      - "Prompt patching"
+      - "Monitoring for unexpected root shells spawned by pkexec"
+    sources:
+      - kind: research
+        title: "PwnKit: Local Privilege Escalation Vulnerability in polkit's pkexec (Qualys)"
+        url: https://blog.qualys.com/vulnerabilities-threat-research/2022/01/25/pwnkit-local-privilege-escalation-vulnerability-discovered-in-polkits-pkexec-cve-2021-4034
+    checked: null
+
+  - id: printnightmare-2021
+    title: "PrintNightmare"
+    year: 2021
+    summary: >-
+      A flaw in the Windows Print Spooler service (CVE-2021-34527) let
+      authenticated users run code as SYSTEM, locally or remotely. Proof-of-
+      concept code was published before a complete fix existed. The Print
+      Spooler runs by default on most Windows machines, including domain
+      controllers.
+    root_cause: "A privileged service, enabled everywhere, with a flawed driver-installation path"
+    would_have_helped:
+      - "Disabling the Print Spooler where it isn't needed, especially on domain controllers"
+      - "Restricting who can install printer drivers"
+      - "Prompt patching"
+    sources:
+      - kind: company
+        title: "CVE-2021-34527 (Microsoft Security Response Center)"
+        url: https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-34527
+      - kind: official
+        title: "CVE-2021-34527 (NVD)"
+        url: https://nvd.nist.gov/vuln/detail/CVE-2021-34527
+    checked: null
+
+  - id: notpetya-2017
+    title: "NotPetya"
+    year: 2017
+    summary: >-
+      Destructive malware disguised as ransomware spread from a compromised
+      update of Ukrainian accounting software, then moved between machines using
+      stolen credentials and an SMB exploit. It wiped systems at companies
+      worldwide. The US charged Russian military intelligence officers, citing
+      nearly $1 billion in losses at just three victims.
+    root_cause: "A trusted software update channel, plus flat networks with reusable admin credentials"
+    would_have_helped:
+      - "Segmentation and unique local admin passwords (LAPS)"
+      - "Patching SMB vulnerabilities"
+      - "Offline, tested backups"
+    sources:
+      - kind: court
+        title: "Six Russian GRU Officers Charged in Connection with Worldwide Deployment of Destructive Malware (US DOJ)"
+        url: https://www.justice.gov/archives/opa/pr/six-russian-gru-officers-charged-connection-worldwide-deployment-destructive-malware-and
+      - kind: press
+        title: "The Untold Story of NotPetya, the Most Devastating Cyberattack in History (Wired)"
+        url: https://www.wired.com/story/notpetya-cyberattack-ukraine-russia-code-crashed-the-world/
+    checked: null
+
+  - id: solarwinds-2020
+    title: "SolarWinds Orion supply chain compromise"
+    year: 2020
+    summary: >-
+      Attackers broke into SolarWinds' build process and inserted a backdoor
+      (SUNBURST) into signed updates of the Orion network-monitoring product.
+      Thousands of customers installed it; the attackers then chose a small
+      number of high-value targets, including US government agencies. The
+      backdoor's command-and-control traffic was designed to look like normal
+      Orion traffic.
+    root_cause: "A compromised build system producing trusted, signed malware"
+    would_have_helped:
+      - "Hardened, monitored, reproducible build pipelines"
+      - "Limiting what network-management tools can reach"
+      - "Detecting unusual outbound traffic from management servers"
+    sources:
+      - kind: research
+        title: "Highly Evasive Attacker Leverages SolarWinds Supply Chain to Compromise Multiple Global Victims With SUNBURST Backdoor (Mandiant)"
+        url: https://cloud.google.com/blog/topics/threat-intelligence/evasive-attacker-leverages-solarwinds-supply-chain-compromises-with-sunburst-backdoor
+      - kind: official
+        title: "ED 21-01: Mitigate SolarWinds Orion Code Compromise (CISA)"
+        url: https://www.cisa.gov/news-events/directives/ed-21-01-mitigate-solarwinds-orion-code-compromise-closed
+    checked: null
+
+  - id: google-aurora-2009
+    title: "Operation Aurora, and Google's move to zero trust"
+    year: 2009
+    summary: >-
+      Google disclosed in January 2010 that a targeted attack from China had hit
+      its corporate network and at least twenty other large companies. In response
+      it rebuilt access around users and devices rather than the network
+      perimeter, an approach it later published as BeyondCorp.
+    root_cause: "Trusting anything inside the corporate network perimeter"
+    would_have_helped:
+      - "Authenticating and authorising every request based on user and device"
+      - "Treating the internal network as hostile"
+    sources:
+      - kind: company
+        title: "A new approach to China (Official Google Blog, 2010)"
+        url: https://googleblog.blogspot.com/2010/01/new-approach-to-china.html
+      - kind: research
+        title: "BeyondCorp: A New Approach to Enterprise Security (Google)"
+        url: https://research.google/pubs/beyondcorp-a-new-approach-to-enterprise-security/
+    checked: null
+
+  - id: mgm-2023
+    title: "MGM Resorts ransomware attack"
+    year: 2023
+    summary: >-
+      Attackers claiming to be Scattered Spider said they got in by calling
+      MGM's IT help desk while impersonating an employee. Systems across MGM's
+      hotels and casinos went down for days, and press reports say virtualisation
+      servers were encrypted with ALPHV ransomware. The attackers' account has
+      not been independently confirmed. CISA's advisory documents the group's
+      help-desk social engineering in general.
+    root_cause: "Help-desk identity checks that a convincing caller could get past"
+    would_have_helped:
+      - "Strong identity verification before help-desk password or MFA resets"
+      - "Phishing-resistant MFA for administrators"
+      - "Alerting on MFA resets followed by admin activity"
+    sources:
+      - kind: official
+        title: "Scattered Spider (CISA advisory AA23-320A)"
+        url: https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a
+      - kind: press
+        title: "Hackers claim MGM cyberattack as outage drags into fourth day (TechCrunch)"
+        url: https://techcrunch.com/2023/09/14/mgm-cyberattack-outage-scattered-spider/
+      - kind: press
+        title: "MGM casino's ESXi servers allegedly encrypted in ransomware attack (BleepingComputer)"
+        url: https://www.bleepingcomputer.com/news/security/mgm-casinos-esxi-servers-allegedly-encrypted-in-ransomware-attack/
+    checked: null
+
+  - id: twilio-0ktapus-2022
+    title: "Twilio and the 0ktapus phishing campaign"
+    year: 2022
+    summary: >-
+      Text messages sent employees of many companies to fake login pages that
+      captured both passwords and one-time codes. Twilio was breached this way.
+      Cloudflare was targeted with the same kit; some employees entered their
+      details, but the attack failed because Cloudflare used hardware security
+      keys.
+    root_cause: "MFA based on one-time codes, which a phishing page can relay"
+    would_have_helped:
+      - "FIDO2 security keys, which only work on the real site"
+      - "Monitoring for newly registered lookalike domains"
+    sources:
+      - kind: company
+        title: "Incident Report: Employee and Customer Account Compromise (Twilio)"
+        url: https://www.twilio.com/en-us/blog/archive/2022/august-2022-social-engineering-attack
+      - kind: research
+        title: "Roasting 0ktapus: The phishing campaign going after Okta identity credentials (Group-IB)"
+        url: https://www.group-ib.com/blog/0ktapus/
+      - kind: company
+        title: "The mechanics of a sophisticated phishing scam and how we stopped it (Cloudflare)"
+        url: https://blog.cloudflare.com/2022-07-sms-phishing-attacks/
+    checked: null
+
+  - id: colonial-pipeline-2021
+    title: "Colonial Pipeline ransomware"
+    year: 2021
+    summary: >-
+      DarkSide ransomware hit Colonial Pipeline's IT systems, and the company
+      shut down its fuel pipeline as a precaution, causing shortages on the US
+      East Coast. Its CEO told the Senate that the attackers came in through a
+      legacy VPN account that had only a password and no MFA. The company paid
+      a ransom, part of which the US Justice Department later seized.
+    root_cause: "A forgotten remote-access account protected only by a password"
+    would_have_helped:
+      - "An inventory of remote-access accounts, with unused ones removed"
+      - "MFA on all remote access"
+      - "Separating IT from operational technology so IT ransomware doesn't stop operations"
+    sources:
+      - kind: official
+        title: "The Attack on Colonial Pipeline: What We've Learned & What We've Done Over the Past Two Years (CISA)"
+        url: https://www.cisa.gov/news-events/news/attack-colonial-pipeline-what-weve-learned-what-weve-done-over-past-two-years
+      - kind: court
+        title: "Department of Justice Seizes $2.3 Million in Cryptocurrency Paid to the Ransomware Extortionists Darkside (US DOJ)"
+        url: https://www.justice.gov/archives/opa/pr/department-justice-seizes-23-million-cryptocurrency-paid-ransomware-extortionists-darkside
+      - kind: press
+        title: "Colonial Pipeline CEO: Ransomware Attack Started via Pilfered 'Legacy' VPN Account (Dark Reading)"
+        url: https://www.darkreading.com/cyberattacks-data-breaches/colonial-pipeline-ceo-ransomware-attack-started-via-pilfered-legacy-vpn-account
+      - kind: press
+        title: "Colonial Pipeline paid $5M ransom one day after hack, CEO tells Senate (CNBC)"
+        url: https://www.cnbc.com/2021/06/08/colonial-pipeline-ceo-testifies-on-first-hours-of-ransomware-attack.html
+    checked: null
+
+  - id: british-library-2023
+    title: "British Library ransomware attack"
+    year: 2023
+    summary: >-
+      The Rhysida ransomware group stole and encrypted data at the British
+      Library, taking much of its online services down for months. The Library
+      published a detailed lessons-learned review, which is unusually candid
+      about how the attackers got in and why legacy systems made recovery
+      slow.
+    root_cause: "Read the review: it identifies the likely entry point and the legacy systems that slowed recovery"
+    would_have_helped:
+      - "Read the review and list its recommendations yourself; that's part of the exercise"
+    sources:
+      - kind: company
+        title: "Learning lessons from the cyber-attack: British Library cyber incident review (March 2024)"
+        url: https://www.bl.uk/home/british-library-cyber-incident-review-8-march-2024.pdf
+    checked: null
+
+  - id: change-healthcare-2024
+    title: "Change Healthcare ransomware attack"
+    year: 2024
+    summary: >-
+      Attackers used stolen credentials to log in to a Change Healthcare Citrix
+      remote-access portal that, the parent company's CEO told Congress, did not
+      have MFA. They deployed ransomware nine days later, disrupting payments
+      and prescriptions across the US health system. UnitedHealth paid a ransom.
+    root_cause: "A remote-access portal without MFA, inherited through an acquisition"
+    would_have_helped:
+      - "MFA on every external system, checked during acquisitions"
+      - "Detecting the nine days of activity before the ransomware ran"
+    sources:
+      - kind: press
+        title: "Change Healthcare breached via Citrix portal with no MFA (TechTarget)"
+        url: https://www.techtarget.com/cybersecurity/news/366582824/Change-Healthcare-breached-via-Citrix-portal-with-no-MFA
+      - kind: press
+        title: "UnitedHealth CEO: 'Decision to pay ransom was mine' (The Register)"
+        url: https://www.theregister.com/2024/04/30/unitedhealth_ceo_ransom/
+    checked: null
+
+  - id: cuckoos-egg-1986
+    title: "The Cuckoo's Egg"
+    year: 1986
+    summary: >-
+      Clifford Stoll, a systems administrator at Lawrence Berkeley Laboratory,
+      traced a 75-cent accounting error to an intruder using the lab as a
+      stepping stone into military networks. He kept the intruder online with
+      fake documents long enough to trace him to Germany, where he was found to
+      be selling information to the KGB. It is one of the earliest documented
+      uses of deception in defense.
+    root_cause: "Default and weak accounts on trusting, interconnected systems"
+    would_have_helped:
+      - "Removing default accounts and passwords"
+      - "Careful logging, which is how the intrusion was noticed at all"
+    sources:
+      - kind: research
+        title: "Stalking the Wily Hacker (Clifford Stoll, Communications of the ACM, 1988)"
+        url: https://doi.org/10.1145/42411.42412
+    checked: null
+
+  - id: uber-2016
+    title: "Uber data breach and cover-up"
+    year: 2016
+    summary: >-
+      Intruders got into Uber engineers' GitHub accounts with passwords reused
+      from other breaches, found a plain-text cloud access key in a private
+      repository, and downloaded data on about 57 million riders and drivers.
+      Uber paid the attackers $100,000 through its bug bounty program and did
+      not disclose the breach for a year; its former security chief was later
+      convicted for the cover-up.
+    root_cause: "A powerful long-lived key in source code, reachable through accounts without MFA"
+    would_have_helped:
+      - "No secrets in code; a secrets manager with short-lived credentials"
+      - "MFA and company-managed accounts for code hosting"
+      - "Timely, honest breach disclosure"
+    sources:
+      - kind: official
+        title: "FTC addresses Uber's undisclosed data breach in new proposed order (FTC)"
+        url: https://www.ftc.gov/business-guidance/blog/2018/04/ftc-addresses-ubers-undisclosed-data-breach-new-proposed-order
+      - kind: court
+        title: "Former Chief Security Officer Of Uber Convicted Of Federal Charges For Covering Up Data Breach (US DOJ)"
+        url: https://www.justice.gov/usao-ndca/pr/former-chief-security-officer-uber-convicted-federal-charges-covering-data-breach
+      - kind: company
+        title: "2016 Data Security Incident (Uber, 2017)"
+        url: https://www.uber.com/newsroom/2016-data-incident/
+    checked: null
+
+  - id: tesla-cryptojacking-2018
+    title: "Tesla Kubernetes cryptojacking"
+    year: 2018
+    summary: >-
+      Researchers at RedLock found a Tesla Kubernetes admin console exposed to
+      the internet without a password. Attackers had used it to run
+      cryptocurrency miners, and cloud credentials were visible inside the
+      cluster.
+    root_cause: "An internet-exposed, unauthenticated cluster management console"
+    would_have_helped:
+      - "Never exposing cluster dashboards publicly; requiring authentication"
+      - "Keeping cloud credentials out of pod configuration"
+      - "Monitoring for unexpected workloads and CPU use"
+    sources:
+      - kind: press
+        title: "Hackers Hijacked Tesla's Cloud to Mine Cryptocurrency (Wired)"
+        url: https://www.wired.com/story/cryptojacking-tesla-amazon-cloud/
+    checked: null
+
+  - id: codecov-2021
+    title: "Codecov Bash Uploader compromise"
+    year: 2021
+    summary: >-
+      An attacker modified Codecov's Bash Uploader script, which many companies
+      ran inside their CI pipelines, so that it sent the pipelines' environment
+      variables (often full of secrets) to the attacker. It went unnoticed for
+      about two months, until a customer compared the script with its published
+      checksum.
+    root_cause: "CI pipelines running a remotely fetched script with access to every secret"
+    would_have_helped:
+      - "Verifying checksums or signatures of downloaded build tools"
+      - "Giving each CI step only the secrets it needs"
+      - "Rotating CI secrets regularly"
+    sources:
+      - kind: company
+        title: "Bash Uploader Security Update (Codecov)"
+        url: https://about.codecov.io/security-update/
+    checked: null
+
+  - id: event-stream-2018
+    title: "event-stream npm package backdoor"
+    year: 2018
+    summary: >-
+      The maintainer of event-stream, a popular npm package, handed it over to a
+      volunteer who then added a dependency containing hidden code. The code
+      targeted one specific application, a Bitcoin wallet, to steal funds.
+    root_cause: "Trust in a package transferred to an unknown maintainer, with obfuscated code nobody reviewed"
+    would_have_helped:
+      - "Pinning dependency versions and reviewing updates"
+      - "Watching for maintainer changes in critical dependencies"
+    sources:
+      - kind: research
+        title: "I don't know what to say (event-stream issue #116, GitHub)"
+        url: https://github.com/dominictarr/event-stream/issues/116
+      - kind: company
+        title: "Details about the event-stream incident (npm Blog)"
+        url: https://blog.npmjs.org/post/180565383195/details-about-the-event-stream-incident
+    checked: null
+
+  - id: xz-utils-2024
+    title: "xz-utils backdoor"
+    year: 2024
+    summary: >-
+      Over about two years, a contributor called "Jia Tan" gained maintainer
+      trust in the xz compression project, then hid a backdoor in release
+      tarballs that targeted OpenSSH on some Linux distributions. Andres Freund
+      found it because SSH logins had become slightly slower, before it reached
+      most stable releases.
+    root_cause: "A single overworked maintainer, social pressure, and release artifacts that differed from the source repository"
+    would_have_helped:
+      - "Reproducible builds from the repository rather than from tarballs"
+      - "Supporting maintainers of critical projects"
+      - "Investigating small anomalies, as Freund did"
+    sources:
+      - kind: research
+        title: "backdoor in upstream xz/liblzma leading to ssh server compromise (Andres Freund, oss-security)"
+        url: https://www.openwall.com/lists/oss-security/2024/03/29/4
+      - kind: research
+        title: "Timeline of the xz open source attack (Russ Cox)"
+        url: https://research.swtch.com/xz-timeline
+    checked: null
+
+  - id: apt1-report-2013
+    title: "Mandiant's APT1 report"
+    year: 2013
+    summary: >-
+      Mandiant published evidence tying a long-running espionage group it called
+      APT1 to a specific unit of China's People's Liberation Army, along with
+      thousands of indicators. It was a turning point in how security companies
+      publicly attribute and name threat groups.
+    root_cause: "Not a single breach: a multi-year campaign against many organisations"
+    would_have_helped:
+      - "Compare its indicators with its behavioural detail to see the Pyramid of Pain in practice"
+    sources:
+      - kind: research
+        title: "Mandiant Exposes APT1 – One of China's Cyber Espionage Units (Mandiant)"
+        url: https://cloud.google.com/blog/topics/threat-intelligence/mandiant-exposes-apt1-chinas-cyber-espionage-units/
+    checked: null
+
+  - id: stuxnet-2010
+    title: "Stuxnet"
+    year: 2010
+    summary: >-
+      Stuxnet was a worm built to sabotage uranium-enrichment centrifuges by
+      reprogramming Siemens industrial controllers while showing operators
+      normal readings. It spread by USB drive and network, used several
+      previously unknown Windows vulnerabilities, and was signed with stolen
+      code-signing certificates.
+    root_cause: "Air-gapped industrial systems reachable through removable media and trusted signed code"
+    would_have_helped:
+      - "Controls on removable media in industrial environments"
+      - "Integrity monitoring of controller logic"
+    sources:
+      - kind: research
+        title: "W32.Stuxnet Dossier (Symantec)"
+        url: https://docs.broadcom.com/doc/security-response-w32-stuxnet-dossier-11-en
+      - kind: press
+        title: "An Unprecedented Look at Stuxnet, the World's First Digital Weapon (Wired)"
+        url: https://www.wired.com/2014/11/countdown-to-zero-day-stuxnet/
+    checked: null

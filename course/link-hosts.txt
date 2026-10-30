@@ -1,0 +1,56 @@
+# Hosts that pages written by the routine (units/ and news/) may link to.
+#
+# You own this file; the routine never edits it. The build fails if a lesson or
+# news page links anywhere else. Every host used in course/cases.yaml and
+# course/labs.yaml is allowed automatically.
+#
+# One entry per line. A hostname also allows its subdomains, and a leading www.
+# doesn't matter. On hosts where anyone can publish (github.com, gitlab.com,
+# docs.google.com and the like), list a full repository or page URL instead.
+#
+# This list matches the routine's network allowlist in README.md: the routine
+# should only link to pages it could actually read. Keep the two in step.
+
+# News
+therecord.media
+bleepingcomputer.com
+krebsonsecurity.com
+securityweek.com
+darkreading.com
+arstechnica.com
+thehackernews.com
+feeds.feedburner.com
+
+# Advisories and vulnerabilities
+cisa.gov
+nvd.nist.gov
+isc.sans.edu
+
+# Research and threat intelligence
+googleprojectzero.blogspot.com
+portswigger.net
+blog.talosintelligence.com
+unit42.paloaltonetworks.com
+microsoft.com
+securelist.com
+schneier.com
+
+# Market and industry
+returnonsecurity.com
+strategyofsecurity.com
+news.crunchbase.com
+risky.biz
+tldrsec.com
+
+# Reference and policy
+enisa.europa.eu
+attack.mitre.org
+owasp.org
+
+# Practice platforms
+tryhackme.com
+hackthebox.com
+overthewire.org
+picoctf.org
+cyberdefenders.org
+blueteamlabs.online

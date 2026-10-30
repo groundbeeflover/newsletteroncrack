@@ -1,0 +1,564 @@
+# Lab catalogue: one exercise for each unit's lab week.
+#
+# You own this file. The weekly routine reads it and never edits it. It may only
+# assign a lab whose `checked` field is set, and it never links to a lab or tool
+# that isn't listed here.
+#
+# Fields
+#   id        referenced from `lab` in course/units.yaml
+#   name
+#   kind      platform: a hosted environment built to be attacked
+#             own-lab:  your own isolated VMs or containers, never a network you don't own
+#             writing:  a document you produce
+#   url       where to start
+#   cost      free, or premium (needs a paid subscription), as listed on 2026-10-30
+#   time      rough hours, including reading and notes
+#   setup     what needs to be in place first
+#   do        what to complete this week
+#   defender  what to look at from the defender's side; write it in your notes
+#   extra     optional alternatives and stretch goals
+#   checked   null until you've opened the links and agree with the entry; then the date
+#
+# Every URL below loaded on 2026-10-30. TryHackMe rooms were opened in a browser
+# to confirm their free or premium status and listed duration. PortSwigger's
+# Web Security Academy is free but needs an account.
+
+labs:
+
+  - id: otw-bandit
+    name: "OverTheWire Bandit, and building your lab"
+    kind: platform
+    url: https://overthewire.org/wargames/bandit/
+    cost: free
+    time: "4-6 h"
+    setup: "A hypervisor and an attacker VM. Put a deliberately vulnerable target (Metasploitable 2) on a host-only network with no route to the internet or your home network."
+    do: "Get through Bandit levels 0 to 15. Finish the rest over the coming weeks."
+    defender: "For each level, note which file permission or setting let you read something you shouldn't have, and how you would fix it."
+    extra:
+      - title: "VirtualBox"
+        url: https://www.virtualbox.org/
+      - title: "Kali Linux downloads"
+        url: https://www.kali.org/get-kali/
+      - title: "Metasploitable 2 (Rapid7 docs, including network warnings)"
+        url: https://docs.rapid7.com/metasploit/metasploitable-2/
+    checked: yes
+
+  - id: threat-model-own-project
+    name: "Threat model one of your own projects"
+    kind: writing
+    url: https://shostack.org/resources/threat-modeling
+    cost: free
+    time: "2-3 h"
+    setup: "Pick a system you've built or know well, such as a web app or your thesis code."
+    do: "Draw its data-flow diagram with trust boundaries, apply STRIDE to each element, rank the threats, and propose a fix for the top three."
+    defender: "For each top threat, would anything you log today show it happening?"
+    extra:
+      - title: "OWASP Threat Dragon (diagramming tool)"
+        url: https://owasp.org/projects/threat-dragon
+      - title: "Elevation of Privilege (threat modeling card game)"
+        url: https://github.com/adamshostack/eop
+    checked: null
+
+  - id: nmap-own-lab
+    name: "Scan and enumerate your own lab target"
+    kind: own-lab
+    url: https://nmap.org/book/toc.html
+    cost: free
+    time: "2-3 h"
+    setup: "Metasploitable 2 running on your isolated lab network."
+    do: "Discover the host, scan all TCP ports, identify service versions, then enumerate SMB, FTP, SSH and HTTP by hand. Write an inventory listing every open port and why it matters."
+    defender: "Capture traffic on the target side while you scan, and compare how noisy different scan types are."
+    extra:
+      - title: "Metasploitable 2 documentation"
+        url: https://docs.rapid7.com/metasploit/metasploitable-2/
+    checked: null
+
+  - id: own-ca-tls-lab
+    name: "Run your own certificate authority and inspect TLS"
+    kind: own-lab
+    url: https://jamielinux.com/docs/openssl-certificate-authority/
+    cost: free
+    time: "2-3 h"
+    setup: "Two lab VMs, a web server, and Wireshark."
+    do: "Create a root CA and a server certificate with OpenSSL, serve a page over HTTP and then HTTPS, and capture both. Then decrypt your own capture with a key log file to see exactly what TLS was hiding."
+    defender: "List what stays visible to a network observer even with TLS: IP addresses, server name, timing and sizes."
+    extra:
+      - title: "TLS on the Wireshark wiki (decryption with key log files)"
+        url: https://wiki.wireshark.org/TLS
+    checked: null
+
+  - id: cryptopals-set-1
+    name: "Cryptopals, set 1"
+    kind: platform
+    url: https://cryptopals.com/sets/1
+    cost: free
+    time: "3-5 h"
+    setup: "Any programming language you're comfortable in."
+    do: "Solve challenges 1 to 8. Challenges 7 and 8 are about AES in ECB mode, the same weakness behind the Adobe case."
+    defender: "Write down why ECB output reveals patterns, and what you would look for when reviewing someone's crypto code."
+    extra: []
+    checked: null
+
+  - id: hashcat-own-hashes
+    name: "Crack hashes you made yourself"
+    kind: own-lab
+    url: https://hashcat.net/wiki/
+    cost: free
+    time: "2 h"
+    setup: "hashcat, a public wordlist, and a handful of test passwords you choose, hashed by you as MD5, SHA-256 and bcrypt."
+    do: "Run a dictionary attack against each set and use benchmark mode to compare speeds. Work out how long each format would take for an 8-character random password."
+    defender: "Online attacks look different from offline cracking: describe how spraying and credential stuffing would appear in a login log."
+    extra:
+      - title: "hashcat example hashes (for checking formats)"
+        url: https://hashcat.net/wiki/doku.php?id=example_hashes
+    checked: null
+
+  - id: scope-and-report-own-lab
+    name: "Scope, recon, and your first written finding"
+    kind: writing
+    url: https://tryhackme.com/room/ohsint
+    cost: free
+    time: "2-3 h"
+    setup: "Your notes from the scanning week."
+    do: "Write a one-page scope and rules of engagement for your lab. Do the OhSINT room (about 60 min) for passive recon. Then write one finding from your scan as it would appear in a real report: title, impact, evidence, fix."
+    defender: "Note which recon steps the target could detect and which it could not."
+    extra:
+      - title: "Public penetration test reports (examples of real findings)"
+        url: https://github.com/juliocesarfort/public-pentesting-reports
+    checked: null
+
+  - id: portswigger-csrf
+    name: "Web Security Academy: CSRF and CORS"
+    kind: platform
+    url: https://portswigger.net/web-security/csrf
+    cost: free
+    time: "2-3 h"
+    setup: "Burp Suite Community Edition and a free PortSwigger account."
+    do: "Read the CSRF topic and solve its apprentice labs, then read the CORS topic and solve its apprentice lab."
+    defender: "Which request headers (Origin, Referer, Sec-Fetch-Site) would let a server or WAF spot a cross-site request?"
+    extra:
+      - title: "Burp Suite Community Edition"
+        url: https://portswigger.net/burp/communitydownload
+      - title: "Web Security Academy: CORS"
+        url: https://portswigger.net/web-security/cors
+    checked: null
+
+  - id: portswigger-access-control
+    name: "Web Security Academy: access control and APIs"
+    kind: platform
+    url: https://portswigger.net/web-security/access-control
+    cost: free
+    time: "2-3 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the access control apprentice labs, then read the API testing topic."
+    defender: "Sketch a log query that would catch one session reading many objects it doesn't own."
+    extra:
+      - title: "Web Security Academy: API testing"
+        url: https://portswigger.net/web-security/api-testing
+    checked: null
+
+  - id: portswigger-sqli
+    name: "Web Security Academy: SQL injection"
+    kind: platform
+    url: https://portswigger.net/web-security/sql-injection
+    cost: free
+    time: "2-3 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the SQL injection apprentice labs, then the first two practitioner UNION labs."
+    defender: "List the patterns that show up in web server and database error logs during your attempts."
+    extra: []
+    checked: null
+
+  - id: portswigger-xss
+    name: "Web Security Academy: XSS and Content Security Policy"
+    kind: platform
+    url: https://portswigger.net/web-security/cross-site-scripting
+    cost: free
+    time: "3 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the reflected, stored and DOM-based XSS apprentice labs, then read the Content Security Policy topic."
+    defender: "Read this site's own Content Security Policy in theme/base.html and explain which of the labs it would have blocked."
+    extra:
+      - title: "Web Security Academy: Content Security Policy"
+        url: https://portswigger.net/web-security/cross-site-scripting/content-security-policy
+    checked: null
+
+  - id: portswigger-jwt
+    name: "Web Security Academy: authentication, OAuth and JWT"
+    kind: platform
+    url: https://portswigger.net/web-security/jwt
+    cost: free
+    time: "3 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the JWT apprentice labs and two authentication apprentice labs, then read the OAuth topic."
+    defender: "Write the list of checks a server must make before trusting a token, and which failure each lab exploited."
+    extra:
+      - title: "Web Security Academy: authentication"
+        url: https://portswigger.net/web-security/authentication
+      - title: "Web Security Academy: OAuth"
+        url: https://portswigger.net/web-security/oauth
+    checked: null
+
+  - id: portswigger-os-command-injection
+    name: "Web Security Academy: command and template injection"
+    kind: platform
+    url: https://portswigger.net/web-security/os-command-injection
+    cost: free
+    time: "2-3 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the OS command injection apprentice lab and the first practitioner labs, then read the server-side template injection topic."
+    defender: "What would these attempts look like in process-creation logs on the server, such as a web server spawning a shell?"
+    extra:
+      - title: "Web Security Academy: server-side template injection"
+        url: https://portswigger.net/web-security/server-side-template-injection
+    checked: null
+
+  - id: portswigger-path-traversal
+    name: "Web Security Academy: path traversal, uploads and XXE"
+    kind: platform
+    url: https://portswigger.net/web-security/file-path-traversal
+    cost: free
+    time: "3 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the path traversal apprentice lab and the file upload apprentice labs, then read the XXE and deserialization topics."
+    defender: "Which file-integrity or web-directory monitoring would catch an uploaded web shell?"
+    extra:
+      - title: "Web Security Academy: file uploads"
+        url: https://portswigger.net/web-security/file-upload
+      - title: "Web Security Academy: XXE"
+        url: https://portswigger.net/web-security/xxe
+      - title: "Web Security Academy: insecure deserialization"
+        url: https://portswigger.net/web-security/deserialization
+    checked: null
+
+  - id: portswigger-ssrf
+    name: "Web Security Academy: SSRF"
+    kind: platform
+    url: https://portswigger.net/web-security/ssrf
+    cost: free
+    time: "2 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the SSRF apprentice labs, then reread the Capital One case and mark where each lab's technique fits."
+    defender: "What outbound requests from a web server should never happen, and where would you log them?"
+    extra: []
+    checked: null
+
+  - id: portswigger-business-logic
+    name: "Web Security Academy: logic flaws and race conditions"
+    kind: platform
+    url: https://portswigger.net/web-security/logic-flaws
+    cost: free
+    time: "2-3 h"
+    setup: "Burp Suite Community Edition."
+    do: "Solve the business logic apprentice labs and the first race condition lab, then read the request smuggling introduction."
+    defender: "Why don't these show up as errors? Describe the business-level metric that would reveal each one."
+    extra:
+      - title: "Web Security Academy: race conditions"
+        url: https://portswigger.net/web-security/race-conditions
+      - title: "Web Security Academy: HTTP request smuggling"
+        url: https://portswigger.net/web-security/request-smuggling
+    checked: null
+
+  - id: vulhub-known-cve
+    name: "Reproduce the Equifax Struts bug in a container, then patch it"
+    kind: own-lab
+    url: https://github.com/vulhub/vulhub/tree/master/struts2/s2-045
+    cost: free
+    time: "2-3 h"
+    setup: "Docker on a lab VM. Never publish the container's ports beyond the lab network."
+    do: "Start the S2-045 environment (CVE-2017-5638), confirm the behaviour its README describes, then move to a fixed Struts version and confirm it no longer works. Look up the CVE's CVSS score, EPSS score and KEV status."
+    defender: "Find the request in the web server log and write a one-line detection for it."
+    extra:
+      - title: "Vulhub (other known-CVE environments)"
+        url: https://github.com/vulhub/vulhub
+      - title: "EPSS"
+        url: https://www.first.org/epss/
+      - title: "CISA Known Exploited Vulnerabilities catalog"
+        url: https://www.cisa.gov/known-exploited-vulnerabilities-catalog
+    checked: null
+
+  - id: binary-basics
+    name: "Beginner binary challenges (picoCTF, now CyLab Security Academy)"
+    kind: platform
+    url: https://learn.cylabacademy.org/library
+    cost: free
+    time: "3 h"
+    setup: "A free account. picoCTF moved to CyLab Security Academy in May 2026; old picoCTF logins still work."
+    do: "Read the binary exploitation part of the CTF Primer, then solve three or four beginner binary challenges from the library."
+    defender: "For each challenge, name the mitigation (ASLR, DEP, canaries, a memory-safe language) that would have stopped it."
+    extra:
+      - title: "The CTF Primer"
+        url: https://primer.picoctf.org/
+      - title: "pwn.college (free, more depth)"
+        url: https://pwn.college/
+    checked: null
+
+  - id: thm-linux-privesc
+    name: "TryHackMe: Linux Privilege Escalation"
+    kind: platform
+    url: https://tryhackme.com/room/linprivesc
+    cost: free
+    time: "2 h"
+    setup: "A free TryHackMe account."
+    do: "Complete the room (listed at 50 min)."
+    defender: "For each route you used, write the auditd rule or hardening step that would catch or block it."
+    extra:
+      - title: "Lynis (audit a Linux VM of your own afterwards)"
+        url: https://cisofy.com/lynis/
+    checked: null
+
+  - id: thm-windows-privesc
+    name: "TryHackMe: Windows PrivEsc"
+    kind: platform
+    url: https://tryhackme.com/room/windows10privesc
+    cost: free
+    time: "2-3 h"
+    setup: "A free TryHackMe account."
+    do: "Complete the room (listed at 75 min)."
+    defender: "Note which Windows event IDs or Sysmon events each technique would produce."
+    extra:
+      - title: "TryHackMe: Windows Privilege Escalation (premium, more structured)"
+        url: https://tryhackme.com/room/windowsprivesc20
+    checked: null
+
+  - id: pivot-own-lab
+    name: "Pivot through a two-network lab"
+    kind: own-lab
+    url: https://man.openbsd.org/ssh
+    cost: free
+    time: "3 h"
+    setup: "Add a second internal network to your lab, with one VM connected to both networks and a target only on the inner one."
+    do: "From your attacker VM, reach the inner target through the dual-homed VM using SSH port forwarding and a SOCKS proxy, then scan through the tunnel."
+    defender: "Capture on both networks. What does the tunnel look like, and which host would a defender see as the source?"
+    extra:
+      - title: "TryHackMe: Lateral Movement and Pivoting (premium, 45 min)"
+        url: https://tryhackme.com/room/lateralmovementandpivoting
+      - title: "TryHackMe: Wreath (premium network, about 8 h)"
+        url: https://tryhackme.com/room/wreath
+    checked: null
+
+  - id: goad-light-setup
+    name: "Build an Active Directory lab with GOAD-Light"
+    kind: own-lab
+    url: https://orange-cyberdefense.github.io/GOAD/
+    cost: free
+    time: "3-5 h"
+    setup: "Check the GOAD documentation's hardware requirements first; the Windows VMs need a lot of RAM and disk."
+    do: "Install the GOAD-Light variant with the provider that suits your machine, and confirm you can log in to each VM."
+    defender: "Find the domain controller's Security event log and note which logon events appear when you sign in."
+    extra:
+      - title: "GOAD on GitHub"
+        url: https://github.com/Orange-Cyberdefense/GOAD
+      - title: "TryHackMe: Attacktive Directory (free; use it if your machine can't run GOAD)"
+        url: https://tryhackme.com/room/attacktivedirectory
+    checked: null
+
+  - id: goad-credential-attacks
+    name: "Map your AD lab and practice its credential weaknesses"
+    kind: own-lab
+    url: https://mayfly277.github.io/categories/goad/
+    cost: free
+    time: "3 h"
+    setup: "Your running GOAD-Light lab."
+    do: "Follow the GOAD author's walkthrough series for this unit's techniques: graph the domain with BloodHound, then practise the credential techniques against your own lab only."
+    defender: "Find each technique in the domain controller's event logs and record the event IDs."
+    extra:
+      - title: "TryHackMe: Attacktive Directory (free alternative)"
+        url: https://tryhackme.com/room/attacktivedirectory
+    checked: null
+
+  - id: goad-domain-takeover
+    name: "Domain takeover techniques in your AD lab"
+    kind: own-lab
+    url: https://mayfly277.github.io/categories/goad/
+    cost: free
+    time: "3 h"
+    setup: "Your running GOAD-Light lab and last week's notes."
+    do: "Continue the walkthrough series for this unit's techniques in your own lab."
+    defender: "Record which techniques left clear events and which were nearly silent. That list feeds the detection weeks."
+    extra: []
+    checked: null
+
+  - id: harden-goad
+    name: "Harden your AD lab and repeat the exercises"
+    kind: own-lab
+    url: https://www.pingcastle.com/
+    cost: free
+    time: "3 h"
+    setup: "Your GOAD-Light lab and notes from the two previous weeks."
+    do: "Run PingCastle against the domain, then apply LAPS, Protected Users and tiered admin accounts. Repeat the last two weeks' exercises and record which now fail."
+    defender: "Compare PingCastle scores before and after."
+    extra:
+      - title: "Windows LAPS overview (Microsoft)"
+        url: https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview
+      - title: "Protected Users security group (Microsoft)"
+        url: https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group
+      - title: "Enterprise access model (Microsoft)"
+        url: https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model
+    checked: null
+
+  - id: harden-own-vm
+    name: "Audit and harden a Linux VM"
+    kind: own-lab
+    url: https://cisofy.com/lynis/
+    cost: free
+    time: "2 h"
+    setup: "A Linux VM you can change freely."
+    do: "Run Lynis, fix the five findings that matter most, run it again, and compare one section against the matching CIS Benchmark."
+    defender: "Note which fixes also make attacks you've practised easier to detect, not only harder to carry out."
+    extra:
+      - title: "CIS Benchmarks"
+        url: https://www.cisecurity.org/cis-benchmarks
+    checked: null
+
+  - id: sysmon-wazuh-setup
+    name: "Set up Sysmon and Wazuh in your lab"
+    kind: own-lab
+    url: https://documentation.wazuh.com/current/quickstart.html
+    cost: free
+    time: "3-4 h"
+    setup: "A VM for the Wazuh server, plus your Windows lab machines."
+    do: "Install Wazuh, install Sysmon with a community configuration on the Windows VMs, forward their logs, and confirm process-creation events arrive."
+    defender: "This week is the defender's side: list which earlier lab activities you could now see."
+    extra:
+      - title: "Sysmon (Microsoft Sysinternals)"
+        url: https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+      - title: "sysmon-config (SwiftOnSecurity)"
+        url: https://github.com/SwiftOnSecurity/sysmon-config
+      - title: "sysmon-modular (Olaf Hartong)"
+        url: https://github.com/olafhartong/sysmon-modular
+    checked: null
+
+  - id: purple-loop
+    name: "Replay earlier attacks and write detections"
+    kind: own-lab
+    url: https://github.com/redcanaryco/atomic-red-team
+    cost: free
+    time: "3 h"
+    setup: "Your Wazuh lab from last week."
+    do: "Run a few Atomic Red Team tests for techniques from earlier units, or repeat earlier lab exercises, then find each in Wazuh and write Sigma rules that catch at least two."
+    defender: "For each rule, note what normal activity could trigger it by mistake."
+    extra:
+      - title: "Sigma rule repository"
+        url: https://github.com/SigmaHQ/sigma
+    checked: null
+
+  - id: phishing-analysis
+    name: "Analyse phishing emails and real email headers"
+    kind: platform
+    url: https://tryhackme.com/room/phishingemails1tryoe
+    cost: free
+    time: "2 h"
+    setup: "A free TryHackMe account."
+    do: "Complete Phishing Analysis Fundamentals (listed at 30 min). Then open the full headers of a few legitimate emails in your own inbox and read the SPF, DKIM and DMARC results."
+    defender: "Write down which header fields you'd check first when someone reports a suspicious email."
+    extra: []
+    checked: null
+
+  - id: cyberdefenders-ir
+    name: "An incident investigation challenge"
+    kind: platform
+    url: https://cyberdefenders.org/blueteam-ctf-challenges/
+    cost: free
+    time: "3 h"
+    setup: "A free CyberDefenders account. Only some challenges are free; filter for free, beginner-level ones."
+    do: "Pick one free beginner investigation challenge and work it to the end. Write a short incident timeline using the NIST incident response phases."
+    defender: "This lab is the defender's side: note which evidence source answered each question."
+    extra:
+      - title: "NIST SP 800-61 Rev. 3, incident response recommendations"
+        url: https://csrc.nist.gov/pubs/sp/800/61/r3/final
+      - title: "Blue Team Labs Online (similar challenges)"
+        url: https://blueteamlabs.online/
+      - title: "The DFIR Report (real intrusion write-ups to compare against)"
+        url: https://thedfirreport.com/
+    checked: null
+
+  - id: memory-forensics
+    name: "Memory forensics with Volatility, plus canary tokens"
+    kind: own-lab
+    url: https://github.com/stuxnet999/MemLabs
+    cost: free
+    time: "3 h"
+    setup: "Volatility 3 on a lab VM."
+    do: "Solve MemLabs Lab 0 or Lab 1 with Volatility 3. Then place two canary tokens in your lab, trigger them, and see what the alert tells you."
+    defender: "This lab is the defender's side: write the timeline you reconstructed from memory."
+    extra:
+      - title: "Volatility 3"
+        url: https://github.com/volatilityfoundation/volatility3
+      - title: "Canarytokens"
+        url: https://canarytokens.org/
+      - title: "TryHackMe: Volatility (premium, guided)"
+        url: https://tryhackme.com/room/volatility
+    checked: null
+
+  - id: flaws-cloud
+    name: "flAWS: AWS misconfiguration challenges"
+    kind: platform
+    url: http://flaws.cloud/
+    cost: free
+    time: "3 h"
+    setup: "None. Optional: the AWS CLI."
+    do: "Work through flAWS level by level, noting the IAM or storage setting each level relies on."
+    defender: "Try the defender track of flAWS2 to see the same mistakes from the log side."
+    extra:
+      - title: "flAWS2 (attacker and defender tracks)"
+        url: http://flaws2.cloud/
+      - title: "CloudGoat (deploys into your own AWS account; mind the cost)"
+        url: https://github.com/RhinoSecurityLabs/cloudgoat
+    checked: null
+
+  - id: kubernetes-goat
+    name: "Kubernetes Goat"
+    kind: own-lab
+    url: https://madhuakula.com/kubernetes-goat/
+    cost: free
+    time: "3 h"
+    setup: "A local Kubernetes cluster, for example kind, on a lab VM."
+    do: "Deploy Kubernetes Goat and complete the first four or five scenarios."
+    defender: "For each scenario, name the default setting or policy that would have blocked it."
+    extra:
+      - title: "Kubernetes Goat on GitHub"
+        url: https://github.com/madhuakula/kubernetes-goat
+      - title: "kind (Kubernetes in Docker)"
+        url: https://kind.sigs.k8s.io/
+    checked: null
+
+  - id: cicd-goat
+    name: "CI/CD Goat"
+    kind: own-lab
+    url: https://github.com/cider-security-research/cicd-goat
+    cost: free
+    time: "3 h"
+    setup: "Docker on a lab VM with enough memory for several containers."
+    do: "Start the environment and solve the easy challenges."
+    defender: "For each challenge, name the pipeline control that would have prevented it, such as protected branches, scoped secrets or pinned actions."
+    extra:
+      - title: "Docker"
+        url: https://www.docker.com/get-started/
+    checked: null
+
+  - id: malware-analysis-intro
+    name: "Introductory malware analysis"
+    kind: platform
+    url: https://tryhackme.com/room/intromalwareanalysis
+    cost: premium
+    time: "2-3 h"
+    setup: "A TryHackMe subscription. Analyse samples only inside the platform's own machines."
+    do: "Complete Intro to Malware Analysis (listed at 90 min) and write up one indicator and one behaviour you found."
+    defender: "Place what you found on the Pyramid of Pain."
+    extra:
+      - title: "Malware-Traffic-Analysis.net exercises (free; packet captures that contain real malware, so open them only in an isolated VM)"
+        url: https://www.malware-traffic-analysis.net/training-exercises.html
+    checked: null
+
+  - id: capstone-report
+    name: "Capstone: a full assessment report on your AD lab"
+    kind: writing
+    url: https://github.com/juliocesarfort/public-pentesting-reports
+    cost: free
+    time: "4-6 h"
+    setup: "Your notes from the Active Directory and Defense units."
+    do: "Write a complete report on your lab: executive summary, scope, findings with evidence and fixes, the detections you built, and what remains undetected."
+    defender: "The detection section is the defender's view; make it as concrete as the findings."
+    extra: []
+    checked: null

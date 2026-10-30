@@ -1,0 +1,16 @@
+# Your progress: one entry per unit, added when you finish its lab.
+#
+# You own this file; the routine reads it and never edits it. A unit counts as
+# done once lab_done has a date, and the routine only moves on to the next unit
+# after that. A confidence of 1 or 2 marks the unit as worth revisiting, and the
+# routine works it back into later reviews.
+#
+#   - unit: lab-and-linux          slug from course/units.yaml
+#     lab_done: 2026-11-08         the date you finished the lab
+#     confidence: 3                1 (lost) to 5 (could teach it)
+#     note: "Bandit up to 15; SUID still fuzzy"
+#
+# Your lab notes go in me/notes/<slug>.md. If this repository is public, so are
+# these files.
+
+progress:

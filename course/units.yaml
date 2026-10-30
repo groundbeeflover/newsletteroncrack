@@ -1,0 +1,597 @@
+# Syllabus: one unit per week, taught in the order listed.
+#
+# You own this file. The weekly routine reads it to decide what to teach next
+# and never edits it. Reorder, merge, or cut units freely. The slug is the
+# unit's permanent ID, so keep it stable once a unit has been taught.
+#
+# Fields
+#   slug        permanent ID, lowercase-with-dashes; also the unit's folder under units/
+#   module      groups units on the course map
+#   title       shown on the site
+#   covers      what the two lessons must cover (every item from the old
+#               digest/curriculum.md lands in exactly one unit)
+#   objectives  what you should be able to do afterwards; the weekly quiz and
+#               the debrief of your lab notes test exactly these
+#   builds_on   earlier units the lessons should connect back to
+#   cases       real incidents that anchor the lessons; IDs in course/cases.yaml
+#   lab         the week's exercise; ID in course/labs.yaml
+#   attack      MITRE ATT&CK technique IDs, used in the detection material
+#
+# The cases and lab IDs are placeholders until course/cases.yaml and
+# course/labs.yaml exist and each entry has been checked against its source.
+# An empty cases list means no well-documented incident has been picked yet.
+
+units:
+
+  # Foundations ---------------------------------------------------------------
+
+  - slug: lab-and-linux
+    module: Foundations
+    title: "Your lab, and Linux through a security lens"
+    covers:
+      - "Building a home lab: hypervisor, attacker VM, deliberately vulnerable target, isolated network"
+      - "The Linux permission model: users, groups, SUID, capabilities"
+      - "Getting started with CTFs"
+    objectives:
+      - "Run an isolated lab network where nothing you practice on can reach the internet or your home network"
+      - "Explain how Linux decides whether a process may read a file or act as another user"
+      - "Work in a Linux shell comfortably enough that it stops being the hard part of a lab"
+    builds_on: []
+    cases: []
+    lab: otw-bandit
+    attack: []
+
+  - slug: threat-modeling
+    module: Foundations
+    title: "Thinking like an attacker: threat modeling, risk, and the industry"
+    covers:
+      - "Threat modeling with STRIDE"
+      - "Risk, the CIA triad, and how security decisions actually get made"
+      - "The security industry map: who sells what (endpoint, identity, cloud, SIEM, MDR, services)"
+    objectives:
+      - "Draw a data-flow diagram of a system and mark its trust boundaries"
+      - "Use STRIDE to list threats against that system and rank them by risk"
+      - "Explain which kinds of company sell which defenses, and where each sits in an attack"
+    builds_on: []
+    cases: [target-2013]
+    lab: threat-model-own-project
+    attack: []
+
+  - slug: networks-and-exposure
+    module: Foundations
+    title: "Networks from an attacker's view"
+    covers:
+      - "Ports, services, and what an organisation exposes to the internet"
+      - "Host discovery, port scanning, and service detection with nmap"
+      - "Enumerating common services: SMB, FTP, SSH, HTTP"
+    objectives:
+      - "Explain what a scan reveals and why exposed services are where many intrusions start"
+      - "Scan a target in your own lab and account for every open port you find"
+      - "Describe what scanning looks like from the defender's side, in firewall and IDS logs"
+    builds_on: [lab-and-linux]
+    cases: [mirai-2016]
+    lab: nmap-own-lab
+    attack: [T1595, T1046]
+
+  - slug: dns-and-tls
+    module: Foundations
+    title: "Trust on the internet: DNS and TLS"
+    covers:
+      - "How DNS works and how it is abused: hijacking, tunneling, subdomain takeover"
+      - "TLS and certificates: what they protect and what they don't"
+    objectives:
+      - "Trace a name lookup and a TLS handshake, and say what someone on the network path can and cannot see or change"
+      - "Explain how a mis-issued certificate breaks the trust model and what certificate transparency adds"
+      - "Run TLS with your own certificate authority in your lab and compare the traffic before and after"
+    builds_on: [networks-and-exposure]
+    cases: [diginotar-2011, sea-turtle-2019]
+    lab: own-ca-tls-lab
+    attack: [T1071.004, T1557]
+
+  - slug: crypto-and-passwords
+    module: Foundations
+    title: "Cryptographic building blocks and password storage"
+    covers:
+      - "Hashing, encryption, signatures, and MACs"
+      - "Password storage: salting, bcrypt and Argon2, and why fast hashes fail"
+    objectives:
+      - "Pick the right primitive (hash, MAC, symmetric or public-key encryption, signature) for a given security goal"
+      - "Explain why salted, deliberately slow hashes protect stored passwords and fast unsalted hashes do not"
+      - "Recognise classic misuse, such as ECB mode or unsalted hashes, in a real system"
+    builds_on: []
+    cases: [linkedin-2012, adobe-2013]
+    lab: cryptopals-set-1
+    attack: []
+
+  - slug: authentication-and-mfa
+    module: Foundations
+    title: "Authentication, password attacks, and how MFA fails"
+    covers:
+      - "Password attacks: cracking, spraying, credential stuffing"
+      - "Authentication, sessions, and how MFA gets bypassed"
+    objectives:
+      - "Explain the difference between cracking, spraying, and stuffing, and which control stops each"
+      - "Measure in your lab how much longer a bcrypt hash takes to crack than an MD5 hash of the same password"
+      - "Rank MFA methods by how well they resist phishing and push fatigue, and say why"
+    builds_on: [crypto-and-passwords]
+    cases: [23andme-2023, uber-2022, snowflake-2024]
+    lab: hashcat-own-hashes
+    attack: [T1110.002, T1110.003, T1110.004, T1621, T1078]
+
+  # Methodology ---------------------------------------------------------------
+
+  - slug: how-security-work-is-done
+    module: Methodology
+    title: "How offensive security work is done"
+    covers:
+      - "What a penetration test is: scope, rules of engagement, written authorization"
+      - "Pentests, red teams, vulnerability assessments, and bug bounties compared"
+      - "Passive reconnaissance and OSINT"
+      - "Writing findings that get fixed: the pentest report"
+      - "Careers in security: offensive, defensive, and governance roles, and which certifications matter"
+    objectives:
+      - "Explain why written authorization and a clear scope are what separate a security test from a crime"
+      - "Write a scope and rules-of-engagement document for your own lab"
+      - "Write one finding a developer could fix from, with impact, evidence, and remediation"
+    builds_on: [networks-and-exposure]
+    cases: [coalfire-iowa-2019]
+    lab: scope-and-report-own-lab
+    attack: [T1593, T1589]
+
+  # Web -----------------------------------------------------------------------
+
+  - slug: browser-security-model
+    module: Web
+    title: "How browsers enforce security"
+    covers:
+      - "Same-origin policy, CORS, and cookies"
+      - "CSRF and SameSite cookies"
+      - "The OWASP Top 10 as a map"
+    objectives:
+      - "Explain what the same-origin policy blocks, what CORS relaxes, and what the SameSite attribute changes"
+      - "Explain why CSRF works and why SameSite cookies and anti-CSRF tokens largely stop it"
+      - "Place each of the coming web units on the OWASP Top 10"
+    builds_on: [dns-and-tls]
+    cases: []
+    lab: portswigger-csrf
+    attack: []
+
+  - slug: access-control
+    module: Web
+    title: "Broken access control, IDOR, and API authorization"
+    covers:
+      - "Broken access control and IDOR"
+      - "API security: broken object-level authorization and mass assignment"
+    objectives:
+      - "Explain why authorization must be checked on the server for every object, not just every page"
+      - "Solve the practice labs and name the server-side check that would have prevented each flaw"
+      - "Describe how this shows up in application logs, such as one session requesting many sequential IDs"
+    builds_on: [browser-security-model]
+    cases: [first-american-2019, optus-2022]
+    lab: portswigger-access-control
+    attack: [T1190]
+
+  - slug: sql-injection
+    module: Web
+    title: "SQL injection"
+    covers:
+      - "SQL injection"
+    objectives:
+      - "Explain how mixing code and data in a query lets input change what the query means"
+      - "Solve the practice labs, then explain why parameterized queries fix the root cause and input filtering does not"
+      - "Name the signs of injection attempts in web server and database logs"
+    builds_on: [access-control]
+    cases: [moveit-2023]
+    lab: portswigger-sqli
+    attack: [T1190]
+
+  - slug: xss-and-csp
+    module: Web
+    title: "Cross-site scripting and Content Security Policy"
+    covers:
+      - "Cross-site scripting: reflected, stored, DOM-based"
+      - "Content Security Policy as a defense against XSS"
+    objectives:
+      - "Explain the three kinds of XSS and why correct output encoding depends on context"
+      - "Solve the practice labs and say which defense would have stopped each one"
+      - "Read this site's own Content Security Policy and explain what it does and does not stop"
+    builds_on: [browser-security-model]
+    cases: [samy-worm-2005, british-airways-2018]
+    lab: portswigger-xss
+    attack: []
+
+  - slug: web-auth-and-tokens
+    module: Web
+    title: "Web authentication, sessions, OAuth, and tokens"
+    covers:
+      - "Authentication and session management flaws"
+      - "OAuth 2.0 and OpenID Connect: what they're for and common misconfigurations"
+      - "JSON Web Token pitfalls"
+    objectives:
+      - "Explain how a session or bearer token stands in for a password, and what follows if one leaks"
+      - "Explain the main OAuth 2.0 and OpenID Connect flows and the misconfigurations that break them"
+      - "Solve the JWT practice labs and list every check a server must make before trusting a token"
+    builds_on: [authentication-and-mfa, browser-security-model]
+    cases: [citrix-bleed-2023, storm-0558-2023]
+    lab: portswigger-jwt
+    attack: [T1539, T1550.001, T1606]
+
+  - slug: server-side-injection
+    module: Web
+    title: "Injection beyond SQL: commands, templates, and lookups"
+    covers:
+      - "OS command injection"
+      - "Server-side template injection"
+      - "Lookup injection, as in Log4Shell"
+    objectives:
+      - "Explain the root cause that command injection, template injection, and Log4Shell share"
+      - "Solve the practice labs and name the design change that removes each bug class"
+      - "Explain why Log4Shell was so hard to find and patch across an organisation"
+    builds_on: [sql-injection]
+    cases: [shellshock-2014, log4shell-2021]
+    lab: portswigger-os-command-injection
+    attack: [T1190, T1059]
+
+  - slug: files-and-parsers
+    module: Web
+    title: "Files and parsers: path traversal, uploads, XXE, deserialization"
+    covers:
+      - "Path traversal and unsafe file uploads"
+      - "XML external entities"
+      - "Insecure deserialization"
+    objectives:
+      - "Explain why file paths, uploaded files, XML, and serialized objects are all untrusted input in disguise"
+      - "Solve the path traversal and file upload practice labs"
+      - "Name the safe default that prevents each: no external entities, no native deserialization of untrusted data, uploads stored outside the web root"
+    builds_on: [server-side-injection]
+    cases: [citrix-adc-2019]
+    lab: portswigger-path-traversal
+    attack: [T1190, T1505.003]
+
+  - slug: ssrf
+    module: Web
+    title: "Server-side request forgery and cloud metadata"
+    covers:
+      - "Server-side request forgery and cloud metadata endpoints"
+    objectives:
+      - "Explain why a server that fetches user-supplied URLs can be turned against the network behind it"
+      - "Solve the practice labs"
+      - "Name the control that would have broken the Capital One chain at each step, such as IMDSv2, egress filtering, and least-privilege roles"
+    builds_on: [files-and-parsers, networks-and-exposure]
+    cases: [capital-one-2019]
+    lab: portswigger-ssrf
+    attack: [T1190, T1552.005]
+
+  - slug: logic-and-protocol-flaws
+    module: Web
+    title: "Logic flaws, race conditions, request smuggling, and disclosure"
+    covers:
+      - "Business logic flaws and race conditions"
+      - "HTTP request smuggling"
+      - "Bug bounty programs and coordinated vulnerability disclosure"
+    objectives:
+      - "Explain why logic flaws and race conditions slip past scanners and code review"
+      - "Explain at a high level how a front-end and a back-end server can disagree about where a request ends"
+      - "Explain how coordinated disclosure and bug bounty programs work, and what safe harbor means"
+    builds_on: [access-control]
+    cases: []
+    lab: portswigger-business-logic
+    attack: []
+
+  # Systems -------------------------------------------------------------------
+
+  - slug: vulnerability-management
+    module: Systems
+    title: "From advisory to patch: vulnerability management"
+    covers:
+      - "Prioritizing vulnerabilities: CVSS, EPSS, and the KEV catalog"
+      - "From advisory to proof of concept: reproducing a known CVE safely"
+      - "Vulnerability management as a program, not a scan"
+    objectives:
+      - "Prioritize a list of CVEs using CVSS, EPSS, and the KEV catalog, and explain why CVSS alone is not enough"
+      - "Reproduce a known, already-patched vulnerability in a disposable lab container and confirm the patch fixes it"
+      - "Explain why patching fails in real organisations and what a working program looks like"
+    builds_on: [server-side-injection]
+    cases: [equifax-2017]
+    lab: vulhub-known-cve
+    attack: [T1190]
+
+  - slug: memory-corruption
+    module: Systems
+    title: "Memory corruption and modern mitigations"
+    covers:
+      - "Memory corruption basics and modern mitigations (ASLR, DEP, stack canaries)"
+    objectives:
+      - "Explain how an overflow or over-read lets input change a program's behaviour or leak its memory"
+      - "Explain what ASLR, DEP, and stack canaries each block, and why memory-safe languages remove the bug class"
+      - "Solve beginner binary challenges in a CTF practice environment"
+    builds_on: [lab-and-linux]
+    cases: [morris-worm-1988, heartbleed-2014, wannacry-2017]
+    lab: binary-basics
+    attack: [T1210]
+
+  - slug: linux-privesc
+    module: Systems
+    title: "Linux privilege escalation"
+    covers:
+      - "Linux privilege escalation"
+    objectives:
+      - "Explain the main routes from a normal user to root: misconfigured SUID binaries, sudo rules, writable services, kernel bugs"
+      - "Work through a guided privilege escalation room"
+      - "Name the hardening steps and auditd rules that prevent or reveal each route"
+    builds_on: [lab-and-linux]
+    cases: [dirty-cow-2016, pwnkit-2022]
+    lab: thm-linux-privesc
+    attack: [T1068, T1548.001]
+
+  - slug: windows-model-and-privesc
+    module: Systems
+    title: "The Windows security model and privilege escalation"
+    covers:
+      - "The Windows security model: accounts, tokens, privileges, UAC"
+      - "Windows privilege escalation"
+    objectives:
+      - "Explain how Windows represents who a process is: accounts, SIDs, tokens, privileges, integrity levels"
+      - "Work through a guided Windows privilege escalation room"
+      - "Name the Windows events and configuration baselines that reveal or prevent each route"
+    builds_on: [linux-privesc]
+    cases: [printnightmare-2021]
+    lab: thm-windows-privesc
+    attack: [T1068, T1134, T1548.002]
+
+  - slug: lateral-movement
+    module: Systems
+    title: "Lateral movement, pivoting, command and control, and persistence"
+    covers:
+      - "Lateral movement: how attackers move between machines"
+      - "Pivoting and tunneling"
+      - "Command and control: how implants talk home"
+      - "Persistence techniques on Windows and Linux"
+    objectives:
+      - "Explain how one compromised machine becomes many, and why reused local admin passwords make it easy"
+      - "Explain how implants blend into normal traffic and how persistence survives a reboot"
+      - "Identify these behaviours in network and endpoint telemetry"
+    builds_on: [windows-model-and-privesc, networks-and-exposure]
+    cases: [notpetya-2017, solarwinds-2020]
+    lab: pivot-own-lab
+    attack: [T1021, T1572, T1071, T1547, T1053]
+
+  # Active Directory ----------------------------------------------------------
+
+  - slug: ad-fundamentals
+    module: Active Directory
+    title: "Active Directory, Kerberos, and NTLM"
+    covers:
+      - "Active Directory fundamentals: domains, forests, trusts, Group Policy"
+      - "Kerberos and NTLM explained"
+    objectives:
+      - "Explain domains, forests, trusts, and Group Policy, and why AD is the main target in most corporate intrusions"
+      - "Walk through a Kerberos logon and an NTLM logon and say what each one exposes"
+      - "Build a small AD lab that you will practice on and monitor for the next four weeks"
+    builds_on: [windows-model-and-privesc]
+    cases: []
+    lab: goad-light-setup
+    attack: []
+
+  - slug: ad-credential-attacks
+    module: Active Directory
+    title: "Mapping AD and attacking its credentials"
+    covers:
+      - "Enumerating AD and finding attack paths with BloodHound"
+      - "LLMNR and NBT-NS poisoning and NTLM relay"
+      - "Kerberoasting and AS-REP roasting"
+    objectives:
+      - "Explain how attack-path graphs turn many small misconfigurations into a route to domain admin"
+      - "Explain why weak service-account passwords and legacy name-resolution protocols are abused so often"
+      - "Practice these in your own AD lab and find each one in the domain controller's event logs"
+    builds_on: [ad-fundamentals, authentication-and-mfa]
+    cases: []
+    lab: goad-credential-attacks
+    attack: [T1087.002, T1482, T1557.001, T1558.003, T1558.004]
+
+  - slug: ad-domain-takeover
+    module: Active Directory
+    title: "Taking over a domain: tickets, certificates, and replication"
+    covers:
+      - "Pass-the-hash and pass-the-ticket"
+      - "Active Directory Certificate Services abuse"
+      - "DCSync, golden tickets, and silver tickets"
+    objectives:
+      - "Explain why stolen hashes and tickets work without the password, and why that makes credential theft so damaging"
+      - "Explain how certificate-service misconfigurations and replication rights lead to full domain compromise"
+      - "Find these in your lab's logs and say which ones survive a password reset"
+    builds_on: [ad-credential-attacks]
+    cases: []
+    lab: goad-domain-takeover
+    attack: [T1550.002, T1550.003, T1649, T1003.006, T1558.001, T1558.002]
+
+  - slug: hardening-ad
+    module: Active Directory
+    title: "Hardening Active Directory"
+    covers:
+      - "Hardening AD: tiering, LAPS, Protected Users"
+    objectives:
+      - "Explain the tiered admin model and why admins logging into ordinary workstations undoes it"
+      - "Apply LAPS, Protected Users, and other hardening to your lab"
+      - "Repeat the last two weeks' exercises and record which ones now fail, and why"
+    builds_on: [ad-domain-takeover]
+    cases: []
+    lab: harden-goad
+    attack: []
+
+  # Defense -------------------------------------------------------------------
+
+  - slug: defense-in-depth
+    module: Defense
+    title: "Defense in depth, zero trust, and hardening baselines"
+    covers:
+      - "Defense in depth and zero trust"
+      - "Hardening baselines: CIS Benchmarks and attack surface reduction"
+    objectives:
+      - "Explain defense in depth and zero trust, and which earlier incidents each would have stopped"
+      - "Audit one of your lab VMs against a hardening baseline and fix the findings that matter most"
+      - "Explain the trade-off between hardening and usability that stops organisations applying baselines fully"
+    builds_on: [hardening-ad]
+    cases: [google-aurora-2009]
+    lab: harden-own-vm
+    attack: []
+
+  - slug: logging-and-siem
+    module: Defense
+    title: "Logging that matters, and SIEM fundamentals"
+    covers:
+      - "Logging that matters: Windows event IDs, Sysmon, auditd"
+      - "SIEM fundamentals: collect, normalize, correlate"
+    objectives:
+      - "Name the log sources and event types that matter most for the techniques you have practiced"
+      - "Set up Sysmon and a free SIEM in your lab and get endpoint logs flowing into it"
+      - "Explain why Target's alerts fired and still did not stop the breach"
+    builds_on: [defense-in-depth]
+    cases: [target-2013]
+    lab: sysmon-wazuh-setup
+    attack: []
+
+  - slug: detection-engineering
+    module: Defense
+    title: "Detection engineering, ATT&CK, EDR, and network monitoring"
+    covers:
+      - "MITRE ATT&CK as a shared language"
+      - "Detection engineering and Sigma rules"
+      - "How EDR works and how attackers try to evade it"
+      - "Network security monitoring with Zeek and Suricata"
+    objectives:
+      - "Map an intrusion to ATT&CK techniques and explain what that mapping is good for"
+      - "Repeat exercises from earlier labs against your monitored lab and write Sigma rules that catch at least two of them"
+      - "Explain how EDR observes an endpoint and why attackers try to blind it"
+    builds_on: [logging-and-siem]
+    cases: []
+    lab: purple-loop
+    attack: [T1562.001]
+
+  - slug: email-and-social-engineering
+    module: Defense
+    title: "Email security and social engineering"
+    covers:
+      - "Email security: SPF, DKIM, DMARC, and phishing defense"
+      - "Social engineering and adversary-in-the-middle phishing kits"
+    objectives:
+      - "Explain what SPF, DKIM, and DMARC each check, and what a phishing email can still get past all three"
+      - "Analyse a phishing email's headers and content in a defensive training lab"
+      - "Explain how help-desk impersonation and adversary-in-the-middle phishing get around MFA, and which controls resist them"
+    builds_on: [authentication-and-mfa]
+    cases: [mgm-2023, twilio-0ktapus-2022]
+    lab: phishing-analysis
+    attack: [T1566, T1656, T1557]
+
+  - slug: incident-response
+    module: Defense
+    title: "Incident response and the ransomware economy"
+    covers:
+      - "Incident response: the NIST lifecycle in practice"
+      - "The ransomware economy: affiliates, access brokers, extortion"
+    objectives:
+      - "Walk through the NIST incident response lifecycle using a real ransomware case"
+      - "Explain how the ransomware economy divides work between access brokers, affiliates, and operators"
+      - "Work through an investigation challenge and write a short incident timeline"
+    builds_on: [logging-and-siem, lateral-movement]
+    cases: [colonial-pipeline-2021, british-library-2023, change-healthcare-2024]
+    lab: cyberdefenders-ir
+    attack: [T1486]
+
+  - slug: forensics-and-hunting
+    module: Defense
+    title: "Forensics, threat hunting, and deception"
+    covers:
+      - "Digital forensics basics: disk, memory, and timelines"
+      - "Threat hunting: forming and testing hypotheses"
+      - "Deception: honeypots and canary tokens"
+    objectives:
+      - "Explain what disk, memory, and log evidence each reveal, and how a timeline ties them together"
+      - "Form a hunting hypothesis from an ATT&CK technique and test it against your lab's data"
+      - "Place canary tokens in your lab and explain why deception produces unusually reliable alerts"
+    builds_on: [detection-engineering, incident-response]
+    cases: [cuckoos-egg-1986]
+    lab: memory-forensics
+    attack: []
+
+  # Cloud and supply chain ----------------------------------------------------
+
+  - slug: cloud-iam
+    module: Cloud and supply chain
+    title: "Cloud IAM, shared responsibility, and secrets"
+    covers:
+      - "The shared responsibility model"
+      - "Cloud IAM and the misconfigurations behind most cloud breaches"
+      - "Secrets management"
+    objectives:
+      - "Explain the shared responsibility model and which side most cloud breaches fall on"
+      - "Work through a cloud misconfiguration CTF and name the IAM or storage setting each step relied on"
+      - "Explain how secrets end up in code and logs, and how a secrets manager and secret scanning prevent it"
+    builds_on: [ssrf]
+    cases: [uber-2016, snowflake-2024]
+    lab: flaws-cloud
+    attack: [T1078.004, T1552.001]
+
+  - slug: containers-and-kubernetes
+    module: Cloud and supply chain
+    title: "Containers and Kubernetes"
+    covers:
+      - "Container security: images, runtime, and escapes"
+      - "The Kubernetes attack surface"
+    objectives:
+      - "Explain what isolates a container from its host and which settings remove that isolation"
+      - "Explain the Kubernetes control plane's attack surface and which defaults are worth changing"
+      - "Work through scenarios in a deliberately vulnerable Kubernetes lab"
+    builds_on: [cloud-iam, linux-privesc]
+    cases: [tesla-cryptojacking-2018]
+    lab: kubernetes-goat
+    attack: [T1610, T1611]
+
+  - slug: supply-chain
+    module: Cloud and supply chain
+    title: "Software supply chain and CI/CD security"
+    covers:
+      - "CI/CD security and software supply chain attacks"
+      - "SBOMs, dependency confusion, and typosquatting"
+    objectives:
+      - "Explain the points where a supply chain can be compromised: source, build, dependency, and update"
+      - "Work through a deliberately vulnerable CI/CD lab"
+      - "Explain what SBOMs, signed builds, and pinned dependencies each protect against"
+    builds_on: [vulnerability-management, cloud-iam]
+    cases: [solarwinds-2020, codecov-2021, event-stream-2018, xz-utils-2024]
+    lab: cicd-goat
+    attack: [T1195.001, T1195.002]
+
+  # Threats and the field -----------------------------------------------------
+
+  - slug: threat-intelligence
+    module: Threats and the field
+    title: "Threat actors, malware, and threat intelligence"
+    covers:
+      - "Malware families and what they're built to do"
+      - "Threat intelligence: indicators versus behaviors, and the Pyramid of Pain"
+      - "Malware analysis basics: static, dynamic, and sandboxes"
+      - "Nation-state actors and how threat groups get named"
+    objectives:
+      - "Explain the Pyramid of Pain and why behaviours are worth more than indicators"
+      - "Explain how threat groups get named and why vendors use different names for the same group"
+      - "Do a guided static and dynamic analysis of a sample inside a training platform's sandbox"
+    builds_on: [detection-engineering]
+    cases: [apt1-report-2013, wannacry-2017, stuxnet-2010]
+    lab: malware-analysis-intro
+    attack: []
+
+  - slug: policy-market-capstone
+    module: Threats and the field
+    title: "Regulation, the security market, and a capstone"
+    covers:
+      - "Security regulation in the EU: NIS2, GDPR breach notification, DORA, the Cyber Resilience Act"
+      - "How security companies get funded, acquired, and consolidated"
+    objectives:
+      - "Explain what NIS2, GDPR breach notification, DORA, and the Cyber Resilience Act each require, and of whom"
+      - "Explain how security companies get funded, acquired, and consolidated, using a recent example"
+      - "Write a full assessment report on your AD lab covering findings, detections, and fixes"
+    builds_on: [how-security-work-is-done, hardening-ad, detection-engineering]
+    cases: []
+    lab: capstone-report
+    attack: []
