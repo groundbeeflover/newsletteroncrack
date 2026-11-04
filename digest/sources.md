@@ -6,7 +6,7 @@ The routine reads these feeds for the weekly news page, then uses web search to 
 
 | Source | Feed | Why it's here |
 |---|---|---|
-| The Record | https://therecord.media/feed/ | Policy, nation-state activity, ransomware |
+| The Record | https://therecord.media/feed | Policy, nation-state activity, ransomware |
 | BleepingComputer | https://www.bleepingcomputer.com/feed/ | Fast on breaches, ransomware, and patches |
 | Krebs on Security | https://krebsonsecurity.com/feed/ | Deep investigations, low volume |
 | SecurityWeek | https://www.securityweek.com/feed/ | Broad coverage, regular funding and M&A roundups |
