@@ -51,7 +51,7 @@ Check `man find` for `-size`, `-user`, `-group`, and `-type`. Redirect errors wi
 <details markdown="1">
 <summary>Hint 3</summary>
 
-Combine tests: for example type, owner, group and exact size in bytes in one `find` command, starting at the directory the level names.
+Combine tests: for example type, owner, group and exact size in bytes in one `find` command. Start at the directory the level names, or at `/` when it says the file is somewhere on the server.
 
 </details>
 
@@ -106,7 +106,7 @@ Repeat: identify with `file`, decompress with the matching tool (`gzip -d`, `bzi
 <details markdown="1">
 <summary>Hint 1</summary>
 
-`ssh -i <keyfile>` logs in with a key. Keys need strict permissions or SSH refuses them.
+`ssh -i <keyfile>` logs in with a key. Keys need strict permissions (`chmod 600`) or SSH refuses them. Read the level page for where it wants you to connect from.
 
 </details>
 
